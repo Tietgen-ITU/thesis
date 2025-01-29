@@ -1,0 +1,3 @@
+[submodule "nvmefs"]
+	path = nvmefs
+	url = https://github.com/emiloh/nvmefs.git
