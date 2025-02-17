@@ -13,5 +13,7 @@ The goal of this document is to highlight the places in DuckDB where it interact
 As mentioned DuckDB uses files to abstract how to manage their data. In each of their files they handle the management of data. DuckDB do not manage a lot of different files. We have managed to find three categories of files that DuckDB create and manage:
 
 **Database Catalog** contains all the data of a database. That is the schemas, tables, indexes, data in tables, etc. The database catalog is one single file and is managed in collaboration between the [`DatabaseStorageManager`](https://github.com/duckdb/duckdb/blob/19864453f7d0ed095256d848b46e7b8630989bac/src/include/duckdb/storage/storage_manager.hpp) and [`SingleFileBlockManager`](https://github.com/duckdb/duckdb/blob/19864453f7d0ed095256d848b46e7b8630989bac/src/include/duckdb/storage/single_file_block_manager.hpp)
-- **Write-Ahead-Log (WAL)**
-- **Temporary files**
+
+**Write-Ahead-Log (WAL)** is responsible to log the actions taken such that if a crash failure happens, then it can recover the steps it took to get the database to a particular state. The path of the write-ahead-log is the same as the path of the database, except that it will append `.wal` at the end. The write ahead log managed by the code in `write_ahead_log.cpp`.
+
+**Temporary files** is used when a query has intermediary data that is larger-than-memory. All temporary files are managed by the `TemporaryFileManager` and the location of the temporary files is from the `DBConfig.options.temporary_directory`. 
