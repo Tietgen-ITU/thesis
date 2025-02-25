@@ -5,14 +5,22 @@ import os
 import re
 from datetime import datetime
 
+nvme = "/home/pinar/.local/nvme-cli/.build/nvme"
 xnvme = "/home/pinar/.local/xnvme/builddir/tools/xnvme"
 xnvme_driver = "/home/pinar/.local/xnvme/builddir/toolbox/xnvme-driver"
 device = "/dev/ng1n1"
-id_log = "0x1"
+id_log = os.getenv("LOGIDWAF")
+sent_offset = map(int, os.getenv("SENT_OFFSET").split("-"))
+written_offset = map(int, os.getenv("WRITTEN_OFFSET").split("-"))
 measurement_interval = 900
 
 def get_waf_non_fdp():
-    # To do - get magic code from environment variables
+    cmd = f"""{nvme} get-log {device} --log-id={id_log} --log-len=512 -b"""
+    res = subprocess.check_output(cmd, shell=True)
+    sent = int.from_bytes(res[sent_offset[0]:sent_offset[1]+1], byteorder="little") 
+    written = int.from_bytes(res[written_offset[0]:written_offset[1]+1], byteorder="little") 
+
+    return written/sent
 
 def get_waf_fdp():
     cmd = f"""{xnvme} log-fdp-stats {device} --lsi {id_log}"""
@@ -33,11 +41,12 @@ def get_waf_fdp():
 
     
 def measure_waf(out, fdp):
-    points = 270
-    while points < 20:
-        time.sleep(900)
-        with open(out, "a") as f:
-            num = get_waf_fdp if fdp else 0
+    points = 0
+    max_points = 270
+    with open(out, "a") as f:
+        while points < max_points:
+            time.sleep(900)
+            num = get_waf_fdp() if fdp else get_waf_non_fdp()
             f.write(f"{datetime.now()} - {num}\n")
         points += 1
 
