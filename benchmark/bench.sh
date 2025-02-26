@@ -23,7 +23,8 @@ NAMESPACE=1
 FDP=0x1D
 
 # Exports
-export LD_LIBRARY_PATH=/us
+export LD_LIBRARY_PATH=/usr/local/lib64
+source /home/pinar/.bashrc
 
 # Return the total number of blocks on the device
 blocks_on_device(){
@@ -42,13 +43,13 @@ deallocate_device(){
 }
 
 disable_fdp(){
-    $NVME_CMD set-feature $DEVICE -f $FDP -c 0 -s
-    $NVME_CMD get-feature $DEVICE -f $FDP -H
+    $NVME set-feature $DEVICE -f $FDP -c 0 -s
+    $NVME get-feature $DEVICE -f $FDP -H
 }
 
 enable_fdp(){
-    $NVME_CMD set-feature $DEVICE -f $FDP -c 1 -s
-    $NVME_CMD get-feature $DEVICE -f $FDP -H
+    $NVME set-feature $DEVICE -f $FDP -c 1 -s
+    $NVME get-feature $DEVICE -f $FDP -H
 }
 
 reset_device() {
@@ -80,7 +81,7 @@ setup_device_fdp_disabled() {
     echo "Attaching the namespace to the device: $DEVICE"
     $NVME attach-ns $DEVICE --namespace-id=$NAMESPACE --controllers=$CONTROLLER
 
-    if [ $PRECON_UTIL -gt 0 ]; then
+    if [[ $PRECON_UTIL -gt 0 ]]; then
         $(fill_device $PRECON_UTIL)
     fi
     echo "___________________________"
@@ -103,20 +104,20 @@ setup_device_fdp_enabled() {
     echo "Attaching the namespace to the device: $DEVICE."
     $NVME attach-ns $DEVICE --namespace-id=$NAMESPACE --controllers=$CONTROLLER
   
-    if [ $PRECON_UTIL -gt 0 ]; then
+    if [[ $PRECON_UTIL -gt 0 ]]; then
         $(fill_device $PRECON_UTIL)
     fi
     echo "___________________________"
 }
 
 # IO_URING_CMD
-setup_device_fdp_disabled(80)
+setup_device_fdp_disabled
 python3 waf.py "no_fdp.txt" false & $FIO ./no_fdp.fio
-setup_device_fdp_enabled(80)
+setup_device_fdp_enabled
 python3 waf.py "fdp.txt" true & $FIO ./fdp.fio
 
 # xNVMe IO_URING_CMD
-setup_device_fdp_disabled(80)
+setup_device_fdp_disabled
 python3 waf.py "no_fdp.txt" false & $FIO ./xnvme_no_fdp.fio
-setup_device_fdp_enabled(80)
+setup_device_fdp_enabled
 python3 waf.py "fdp.txt" true & $FIO ./xnvme_fdp.fio
