@@ -10,6 +10,7 @@ xnvme = "/home/pinar/.local/xnvme/builddir/tools/xnvme"
 xnvme_driver = "/home/pinar/.local/xnvme/builddir/toolbox/xnvme-driver"
 device = "/dev/ng1n1"
 id_log = os.getenv("LOGIDWAF")
+id_log_xnvme = "0x1"
 sent_offset = map(int, os.getenv("SENT_OFFSET").split("-"))
 written_offset = map(int, os.getenv("WRITTEN_OFFSET").split("-"))
 measurement_interval = 900
@@ -24,14 +25,13 @@ def get_waf_non_fdp():
     return media/host
 
 def get_waf_fdp():
-    cmd = f"""{xnvme} log-fdp-stats {device} --lsi {id_log}"""
+    cmd = f"""{xnvme} log-fdp-stats {device} --lsi {id_log_xnvme}"""
     res = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout.decode("utf-8")
     host = 0
     media = 0
 
     for i, line in enumerate(res.split('\n')):
         if i == 3:
-            print(line)
             num = re.search(r"""\d+""", line).group()
             host = int(num) if num else 0
         elif i == 4:
