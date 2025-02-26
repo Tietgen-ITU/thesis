@@ -13,14 +13,15 @@ id_log = os.getenv("LOGIDWAF")
 sent_offset = map(int, os.getenv("SENT_OFFSET").split("-"))
 written_offset = map(int, os.getenv("WRITTEN_OFFSET").split("-"))
 measurement_interval = 900
+measurement_duration = 24 # every 15 min for 6 hours
 
 def get_waf_non_fdp():
     cmd = f"""{nvme} get-log {device} --log-id={id_log} --log-len=512 -b"""
     res = subprocess.check_output(cmd, shell=True)
-    sent = int.from_bytes(res[sent_offset[0]:sent_offset[1]+1], byteorder="little") 
-    written = int.from_bytes(res[written_offset[0]:written_offset[1]+1], byteorder="little") 
+    host = int.from_bytes(res[sent_offset[0]:sent_offset[1]+1], byteorder="little") 
+    media = int.from_bytes(res[written_offset[0]:written_offset[1]+1], byteorder="little") 
 
-    return written/sent
+    return media/host
 
 def get_waf_fdp():
     cmd = f"""{xnvme} log-fdp-stats {device} --lsi {id_log}"""
@@ -42,15 +43,18 @@ def get_waf_fdp():
     
 def measure_waf(out, fdp):
     points = 0
-    max_points = 270
-    with open(out, "a") as f:
+    max_points = measurement_duration
+    with open(out, "w") as f:
         while points < max_points:
-            time.sleep(900)
-            num = get_waf_fdp() if fdp else get_waf_non_fdp()
-            f.write(f"{datetime.now()} - {num}\n")
-        points += 1
+            time.sleep(measurement_interval)
+            waf = get_waf_fdp() if fdp else get_waf_non_fdp()
+            f.write(f"{datetime.now()} - {waf}\n")
+            f.flush()
+            points += 1
 
 if __name__ == "__main__":
     out = sys.argv[1]
-    fdp = sys.argv[2]
-    measure_waf(out)
+    fdp = False
+    if sys.argv[2] == "true":
+        fdp = True
+    measure_waf(out, fdp)
