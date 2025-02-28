@@ -11,8 +11,8 @@ xnvme_driver = "/home/pinar/.local/xnvme/builddir/toolbox/xnvme-driver"
 device = "/dev/ng1n1"
 id_log = os.getenv("LOGIDWAF")
 id_log_xnvme = "0x1"
-sent_offset = map(int, os.getenv("SENT_OFFSET").split("-"))
-written_offset = map(int, os.getenv("WRITTEN_OFFSET").split("-"))
+sent_offset = list(map(int, os.getenv("SENT_OFFSET").split("-")))
+written_offset = list(map(int, os.getenv("WRITTEN_OFFSET").split("-")))
 measurement_interval = 900
 measurement_duration = 24 # every 15 min for 6 hours
 
