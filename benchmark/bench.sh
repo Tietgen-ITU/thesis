@@ -72,7 +72,7 @@ setup_device_fdp_disabled() {
     echo "Disabling fdp on the device"
     disable_fdp
     
-    local var PRECON_UTIL={$1-0}
+    local var PRECON_UTIL=${1:-0}
     local var DEVICE_CAP=$(blocks_on_device)
     
     echo "Creating namepace with size: $DEVICE_CAP, and block size: $BLOCK_SIZE"
@@ -94,7 +94,7 @@ setup_device_fdp_enabled() {
     echo "enabling fdp on the device"
     enable_fdp
 
-    local var PRECON_UTIL={$1-0}
+    local var PRECON_UTIL=${1:-0}
     local var DEVICE_CAP=$(blocks_on_device)
    
     # For some reason it is not possible to allocate all 8 reclaim unit handles. The error code can be found in the base specification by searching "2Ah"
@@ -112,12 +112,12 @@ setup_device_fdp_enabled() {
 
 # IO_URING_CMD
 setup_device_fdp_disabled 80
-python3 waf.py "no_fdp.txt" false & $FIO ./no_fdp.fio
+python3 waf.py "no_fdp.txt" false & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./no_fdp.fio
 setup_device_fdp_enabled 80
-python3 waf.py "fdp.txt" true & $FIO ./fdp.fio
+python3 waf.py "fdp.txt" true & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./fdp.fio
 
 # xNVMe IO_URING_CMD
 setup_device_fdp_disabled 80
-python3 waf.py "no_fdp.txt" false & $FIO ./xnvme_no_fdp.fio
+python3 waf.py "no_fdp.txt" false & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./xnvme_no_fdp.fio
 setup_device_fdp_enabled 80
-python3 waf.py "fdp.txt" true & $FIO ./xnvme_fdp.fio
+python3 waf.py "fdp.txt" true & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./xnvme_fdp.fio
