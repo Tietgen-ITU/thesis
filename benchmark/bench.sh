@@ -62,7 +62,7 @@ reset_device() {
 fill_device() {
     local var UTIL=$1
     # TODO : fill device with random garbage using fio
-
+    $FIO --filename=$DEVICE_NG --size="$UTIL%" --name fillDevice --rw=write --numjobs=1 --ioengine=io_uring_cmd --iodepth=64 --bs=128K
 }
 
 setup_device_fdp_disabled() {
@@ -111,13 +111,13 @@ setup_device_fdp_enabled() {
 }
 
 # IO_URING_CMD
-setup_device_fdp_disabled
+setup_device_fdp_disabled 80
 python3 waf.py "no_fdp.txt" false & $FIO ./no_fdp.fio
-setup_device_fdp_enabled
+setup_device_fdp_enabled 80
 python3 waf.py "fdp.txt" true & $FIO ./fdp.fio
 
 # xNVMe IO_URING_CMD
-setup_device_fdp_disabled
+setup_device_fdp_disabled 80
 python3 waf.py "no_fdp.txt" false & $FIO ./xnvme_no_fdp.fio
-setup_device_fdp_enabled
+setup_device_fdp_enabled 80
 python3 waf.py "fdp.txt" true & $FIO ./xnvme_fdp.fio
