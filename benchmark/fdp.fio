@@ -2,7 +2,7 @@
 filename=${DEVICE}
 iodepth=${IODEPTH}
 bs=${BS}
-numjobs={THREADS}
+numjobs=${THREADS}
 ioengine=io_uring_cmd
 time_based=1
 runtime=6h
