@@ -61,8 +61,9 @@ reset_device() {
 
 fill_device() {
     local var UTIL=$1
-    # TODO : fill device with random garbage using fio
+    echo "filling device to $UTIL%"
     $FIO --filename=$DEVICE_NG --size="$UTIL%" --name fillDevice --rw=write --numjobs=1 --ioengine=io_uring_cmd --iodepth=64 --bs=128K
+    echo "done filling device to $UTIL%"
 }
 
 setup_device_fdp_disabled() {
@@ -82,7 +83,7 @@ setup_device_fdp_disabled() {
     $NVME attach-ns $DEVICE --namespace-id=$NAMESPACE --controllers=$CONTROLLER
 
     if [[ $PRECON_UTIL -gt 0 ]]; then
-        $(fill_device $PRECON_UTIL)
+        fill_device $PRECON_UTIL
     fi
     echo "___________________________"
 }
@@ -105,7 +106,7 @@ setup_device_fdp_enabled() {
     $NVME attach-ns $DEVICE --namespace-id=$NAMESPACE --controllers=$CONTROLLER
   
     if [[ $PRECON_UTIL -gt 0 ]]; then
-        $(fill_device $PRECON_UTIL)
+        fill_device $PRECON_UTIL
     fi
     echo "___________________________"
 }
