@@ -7,6 +7,9 @@ ioengine=xnvme
 xnvme_async=io_uring_cmd
 time_based=1
 runtime=6h
+output-format=json
+output=${OUTPUT}
+group_reporting
 
 
 [write-heavy]
