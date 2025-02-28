@@ -113,12 +113,12 @@ setup_device_fdp_enabled() {
 
 # IO_URING_CMD
 setup_device_fdp_disabled 80
-python3 waf.py "no_fdp.txt" false & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG OUTPUT="./no_fdp_results.txt" $FIO ./no_fdp.fio
+python3 waf.py "no_fdp.txt" false & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./no_fdp.fio --output="./no_fdp_results.txt" --output-format="json"
 setup_device_fdp_enabled 80
-python3 waf.py "fdp.txt" true & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG OUTPUT="./fdp_results.txt" $FIO ./fdp.fio
+python3 waf.py "fdp.txt" true & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./fdp.fio --output="./fdp_results.txt" --output-format="json"
 
 # xNVMe IO_URING_CMD
 setup_device_fdp_disabled 80
-python3 waf.py "no_fdp.txt" false & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG OUTPUT="./xnvme_no_fdp_results.txt" $FIO ./xnvme_no_fdp.fio
+python3 waf.py "no_fdp.txt" false & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./xnvme_no_fdp.fio --output="./xnvme_no_fdp_results.txt" --output-format="json"
 setup_device_fdp_enabled 80
-python3 waf.py "fdp.txt" true & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG OUTPUT="./xnvme_fdp_results.txt" $FIO ./xnvme_fdp.fio
+python3 waf.py "fdp.txt" true & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./xnvme_fdp.fio --output="./xnvme_fdp_results.txt" --output-format="json"
