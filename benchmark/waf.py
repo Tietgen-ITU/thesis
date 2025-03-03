@@ -40,17 +40,18 @@ def get_waf_fdp():
     if host == 0: return 0
     return media/host 
 
-    
 def measure_waf(out, fdp):
     points = 0
     max_points = measurement_duration
-    with open(out, "w") as f:
-        while points < max_points:
-            time.sleep(measurement_interval)
-            waf = get_waf_fdp() if fdp else get_waf_non_fdp()
-            f.write(f"{datetime.now()} - {waf}\n")
-            f.flush()
-            points += 1
+    waf_file = open(out, "w+")
+    while points < max_points:
+        time.sleep(measurement_interval)
+        waf = get_waf_fdp() if fdp else get_waf_non_fdp()
+        waf_file.write(f"{datetime.now()} - {waf}\n")
+        points += 1
+    waf_file.flush()
+    os.fsync(waf_file.fileno())
+    waf_file.close()
 
 if __name__ == "__main__":
     out = sys.argv[1]
