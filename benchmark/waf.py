@@ -21,6 +21,8 @@ def get_waf_non_fdp(last_host, last_media):
     res = subprocess.check_output(cmd, shell=True)
     host = int.from_bytes(res[sent_offset[0]:sent_offset[1]+1], byteorder="little") 
     media = int.from_bytes(res[written_offset[0]:written_offset[1]+1], byteorder="little") 
+
+    if host == 0: return (0,0,0)
     
     diff_host = host - last_host
     diff_media = media - last_media
@@ -40,7 +42,7 @@ def get_waf_fdp(last_host, last_media):
         elif i == 4:
             num = re.search(r"""\d+""", line).group()
             media = int(num) if num else 0
-    if host == 0: return 0
+    if host == 0: return (0,0,0)
     
     diff_host = host - last_host
     diff_media = media - last_media
@@ -48,7 +50,7 @@ def get_waf_fdp(last_host, last_media):
     return (diff_media/diff_host, host, media)
 
 def measure_waf(out, fdp):
-    initial_stats = get_waf_non_fdp()
+    initial_stats = get_waf_non_fdp(0, 0)
     current_host = initial_stats[1]
     current_media = initial_stats[2]
 
