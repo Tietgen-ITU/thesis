@@ -12,13 +12,19 @@ group_reporting
 rw=randrw
 rwmixwrite=90
 size=30%
+flow_id=42
+flow=1
 
 [write-mid]
 rw=randrw
 rwmixwrite=30
 size=30%
+flow_id=42
+flow=1
 
 [write-light]
 rw=randrw
 rwmixwrite=10
 size=30%
+flow_id=42
+flow=1
