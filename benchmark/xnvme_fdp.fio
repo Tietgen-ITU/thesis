@@ -9,6 +9,7 @@ time_based=1
 runtime=6h
 group_reporting
 thread=1
+fdp=1
 
 [write-heavy]
 rw=randrw
