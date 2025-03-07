@@ -17,8 +17,7 @@ rwmixwrite=90
 fdp_pli=0,1,2,3
 offset=0%
 size=30%
-flow_id=42
-flow=1
+new_group
 
 [write-mid]
 rw=randrw
@@ -26,8 +25,7 @@ rwmixwrite=30
 fdp_pli=4,5
 offset=30%
 size=30%
-flow_id=42
-flow=1
+new_group
 
 [write-light]
 rw=randrw
@@ -35,5 +33,4 @@ rwmixwrite=10
 fdp_pli=6
 offset=60%
 size=30%
-flow_id=42
-flow=1
+new_group
