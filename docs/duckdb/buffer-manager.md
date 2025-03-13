@@ -29,9 +29,13 @@ sequenceDiagram
                 EvictionQueue->>EvictionQueue: TryGetBlockHandle()
                 EvictionQueue->>BlockHandle: GetLock()
                 BlockHandle-->>EvictionQueue: return lock
-                EvictionQueue->>BufferPool: fn(node, blockHandle, lock)         
-                BufferPool->>BufferPool: Do something
-                BufferPool-->>EvictionQueue: return result
+                rect rgb(135, 50, 168, 0.1)
+                    EvictionQueue->>BufferPool: fn(node, blockHandle, lock)         
+                    BufferPool->>BlockHandle: blockHandle.UnloadAndTakeBlock()
+                    BlockHandle->>StandardBufferManager: WriteToTemporaryBuffer()
+                    BlockHandle-->>BufferPool: return buffer
+                    BufferPool-->>EvictionQueue: return result
+                end
                 EvictionQueue-->>BufferPool: return result
                 BufferPool-->>BufferPool: return pool reservation
             end
