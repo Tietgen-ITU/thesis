@@ -17,3 +17,11 @@ As mentioned DuckDB uses files to abstract how to manage their data. In each of 
 **Write-Ahead-Log (WAL)** is responsible to log the actions taken such that if a crash failure happens, then it can recover the steps it took to get the database to a particular state. The path of the write-ahead-log is the same as the path of the database, except that it will append `.wal` at the end. The write ahead log managed by the code in `write_ahead_log.cpp`.
 
 **Temporary files** is used when a query has intermediary data that is larger-than-memory. All temporary files are managed by the `TemporaryFileManager` and the location of the temporary files is from the `DBConfig.options.temporary_directory`. 
+
+## Memory Layout
+
+In this section we present ideas on how to structure data on the device, based on how the data is sort of structured at the moment. The general assumption that we have is that the application takes full ownership of the device. Meaning that we do not expect anything else to be stored on the device other than the data we have defined. 
+
+### Pre-allocated partitions
+
+The idea behind pre-allocated partitions is that, we know what data is going to be stored on the disk and approximately how much of the data that is 
