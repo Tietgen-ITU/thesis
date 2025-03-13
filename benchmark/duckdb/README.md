@@ -7,12 +7,12 @@ This directory contains files to run benchmarks for the duckdb instance referenc
 In order to run the benchmark, you first need to setup up the python environment:
 
 ```sh
-python3 -m venv .venv
+chmod +x ./init.sh
+./init.sh
 ```
 
-Or just run 
+However, if you are using fish then you would have to source the environment after running the above commands:
 
-```sh
-sh ./setup.sh
+```fish
+source .venv/bin/activate.fish
 ```
-
