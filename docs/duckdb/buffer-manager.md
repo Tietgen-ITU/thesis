@@ -8,13 +8,13 @@ The `BufferManager` in DuckDB is an abstract class. For that reason our attentio
 
 ```mermaid
 sequenceDiagram
-    participant PhysicalOperator
+    participant ColumnOrRowDataAllocator
     participant StandardBufferManager
     participant BufferPool
     participant EvictionQueue
     participant BlockHandle
 
-    PhysicalOperator ->> StandardBufferManager: Allocate()
+    ColumnOrRowDataAllocator ->> StandardBufferManager: Allocate()
     StandardBufferManager->>StandardBufferManager: RegisterMemory()
     StandardBufferManager->>StandardBufferManager: EvictBlocksOrThrow(tag, memory_delta, buf, args)
     StandardBufferManager->>BufferPool: EvictBlocks()
@@ -44,6 +44,8 @@ sequenceDiagram
     BufferPool-->>StandardBufferManager: return block_result
 
 ```
+
+The `ColumnOrRowDataAllocator` represents the two type of memory allocators for DuckDB that the physical operators interacts with. These two classes are called `ColumnDataAllocator` and `RowDataAllocator`.
 
 ## Descriptions of functions
 
