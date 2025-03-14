@@ -7,6 +7,7 @@ ioengine=io_uring_cmd
 time_based=1
 runtime=6h
 group_reporting
+rate=50m,50m
 
 [write-heavy]
 rw=randrw

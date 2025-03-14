@@ -10,6 +10,7 @@ runtime=6h
 group_reporting
 thread=1
 fdp=1
+rate=50m,50m
 
 [write-heavy]
 rw=randrw
