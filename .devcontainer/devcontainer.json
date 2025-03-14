@@ -1,0 +1,23 @@
+{
+	"name": "nvmefs",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": ".."
+	},
+	"postCreateCommand": "bash -i .devcontainer/install-dependencies.sh",
+	"containerEnv": {
+		"SHELL": "/bin/bash"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"VisualStudioExptTeam.vscodeintellicode",
+				"VisualStudioExptTeam.intellicode-api-usage-examples",
+				"ms-vscode.cpptools",
+				"ms-vscode.cpptools-extension-pack",
+				"ms-vscode.cmake-tools",
+				"EditorConfig.EditorConfig"
+			]
+		}
+	}
+}
