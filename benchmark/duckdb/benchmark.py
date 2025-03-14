@@ -9,6 +9,11 @@ class Arguments:
     io_backend: str
     use_fdp: bool
 
+    def valid(self) -> bool:
+        if self.device is None:
+            print("Device path is required")
+            return False
+
     @staticmethod
     def parse_args():
         parser = argparse.ArgumentParser()
@@ -46,20 +51,28 @@ class Arguments:
         )
 
         args = parser.parse_args()
-
-        return Arguments(
+        
+        arguments: Arguments = Arguments(
             iterations=args.iterations,
             device=args.device,
             io_backend=args.backend,
             use_fdp=args.fdp
         )
 
+        if not arguments.valid():
+            parser.print_help()
+            exit(1)
+        
+        return arguments
+
 if __name__ == "__main__":
 
     args: Arguments = Arguments.parse_args()
 
-    db: duckdb.Database = duckdb.connect("nvmefs://bench.db", args.device, args.io_backend, args.use_fdp)
-    # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
-    db.query("CREATE TABLE test (a INTEGER, b INTEGER, c INTEGER)")
-    db.query("INSERT INTO test VALUES (1, 2, 3)")
-    db.query("SELECT * FROM test")
+    print(args)
+
+    # db: duckdb.Database = duckdb.connect("nvmefs://bench.db", args.device, args.io_backend, args.use_fdp)
+    # # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
+    # db.query("CREATE TABLE test (a INTEGER, b INTEGER, c INTEGER)")
+    # db.query("INSERT INTO test VALUES (1, 2, 3)")
+    # db.query("SELECT * FROM test")
