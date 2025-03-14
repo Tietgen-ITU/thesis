@@ -29,7 +29,7 @@ def get_waf(last_host, last_media):
 
     return (diff_media/diff_host, host, media)
 
-def measure_waf(out, fdp):
+def measure_waf(out):
     initial_stats = get_waf(0, 0)
     current_host = initial_stats[1]
     current_media = initial_stats[2]
