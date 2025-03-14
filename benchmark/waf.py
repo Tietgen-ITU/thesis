@@ -13,8 +13,8 @@ id_log = os.getenv("LOGIDWAF")
 id_log_xnvme = "0x1"
 sent_offset = list(map(int, os.getenv("SENT_OFFSET").split("-")))
 written_offset = list(map(int, os.getenv("WRITTEN_OFFSET").split("-")))
-measurement_interval = 900
-measurement_duration = 24 # every 15 min for 6 hours
+measurement_interval = 600
+measurement_duration = 36 # every 10 min for 3 hours
 
 def get_waf(last_host, last_media):
     cmd = f"""{nvme} get-log {device} --log-id={id_log} --log-len=512 -b"""
