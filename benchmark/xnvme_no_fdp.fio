@@ -14,20 +14,20 @@ thread=1
 [write-heavy]
 rw=randrw
 rwmixwrite=90
+offset=0%
 size=30%
-flow_id=42
-flow=1
+new_group
 
 [write-mid]
 rw=randrw
 rwmixwrite=30
+offset=30%
 size=30%
-flow_id=42
-flow=1
+new_group
 
 [write-light]
 rw=randrw
 rwmixwrite=10
+offset=0%
 size=30%
-flow_id=42
-flow=1
+new_group
