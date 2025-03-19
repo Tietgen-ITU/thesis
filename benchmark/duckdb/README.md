@@ -11,12 +11,19 @@ In order to run the benchmark, you first need to setup up the python environment
 
 ```sh
 chmod +x ./init.sh
+chmod +x ./run.sh
 source ./init.sh
 ```
 
 However, if you are using fish then you would have to source the environment after running the above commands:
 
 ```sh
+chmod +x ./run.sh
 sh ./init.sh
 source .venv/bin/activate.fish
+```
+
+Running the benchmarks is as simple as:
+```sh
+./run.sh
 ```
