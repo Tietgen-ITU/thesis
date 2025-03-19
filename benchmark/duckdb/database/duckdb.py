@@ -1,14 +1,31 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 import duckdb
 
+@dataclass
+class ConnectionConfig:
+    device: str = ""
+    backend: str = ""
+    use_fdp: bool = False
 class Database(ABC):
-    def __init__(self, connection: duckdb.DuckDBPyConnection):
-        self.connection = connection
-        self.__setup()
+
+
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+        self.connection: duckdb.DuckDBPyConnection = None
+        self._setup()
     
     @abstractmethod
-    def __setup(self):
+    def _setup(self):
         pass
+
+    @property
+    def get_is_connected(self):
+        return self.connection is not None
+
+    def __connect(self):
+        if not self.get_is_connected:
+            self.connection = duckdb.connect(self.db_path)
 
     def query(self, query: str):
         return self.connection.execute(query)
@@ -21,33 +38,53 @@ class QuackDatabase(Database):
     QuackDatabase is just a normal Database wrapper of DuckDB
     """
 
-    def __init__(self, connection: duckdb.DuckDBPyConnection):
-        super().__init__(connection)
+    def __init__(self, db_path: str):
+        super().__init__(db_path)
     
-    def __setup(self):
-        pass
+    def _setup(self):
+        print("Setting up QuackDatabase")
+        return
 
 class NvmeDatabase(Database):
     """
     NvmeDatabase is a Database wrapper of DuckDB that uses NVMe as the storage backend
     """
-    def __init__(self, connection: duckdb.DuckDBPyConnection):
-        super().__init__(connection)
+
+    def __init__(self, db_path: str, config: ConnectionConfig):
+        self.device_path = config.device
+        self.backend = config.backend
+        self.use_fdp = config.use_fdp
+        self.number_of_fdp_handles = 7
+        super().__init__(db_path)
     
-    def __setup(self):
+    def _setup(self):
         add_extension("../../nvmefs/build/release/extension/nvmefs/nvmefs.duckdb_extension", self)
-        self.query("CREATE OR REPLACE PERSISTENT SECRET nvmefs:// ")
+        run_query(f"""CREATE PERSISTENT SECRET nvmefs (
+                        TYPE NVMEFS,
+                        nvme_device_path '{self.device_path}',
+                        fdp_plhdls       '{self.number_of_fdp_handles}',
+                    );""")
+        self.__connect()
 
-def add_extension(name: str, db: Database):
-    db.add_extension(name)
+def add_extension(name: str, db: Database = None):
+    if db is None or not db.get_is_connected:
+        duckdb.load_extension(name)
+    else:
+        db.add_extension(name)
 
-def connect(db_path:str, device: str, backend: str, use_fdp: bool) -> Database:
+def run_query(query: str, db: Database = None):
+    if db is None or not db.get_is_connected:
+        return duckdb.execute(query)
+    else:
+        db.query(query)
+
+def connect(db_path:str, config: ConnectionConfig = None) -> Database:
     # TODO: Use parameters and insert them into the connection string
     db: Database = None
 
     if db_path.startswith("nvmefs://"):
-        db = NvmeDatabase(duckdb.connect(db_path))
+        db = NvmeDatabase(db_path, config)
     else:
-        db = QuackDatabase(duckdb.connect(db_path))
+        db = QuackDatabase(db_path)
 
     return db
