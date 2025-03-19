@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 import argparse
+from typing import Callable
+from runner.factory import create_benchmark_runner
+from device.nvme import NvmeDevice, setup_device
 from database import duckdb
 
 @dataclass
@@ -7,16 +10,27 @@ class Arguments:
     iterations: int
     device: str
     io_backend: str
-    use_fdp: bool
+    use_fdp: bool = False
+    use_generic_device: bool = False
+    benchmark: str
 
     def valid(self) -> bool:
-        if self.device is None:
+        print(self)
+        if self.use_fdp and self.device is None:
             print("Device path is required")
             return False
+        
+        return True
 
     @staticmethod
     def parse_args():
         parser = argparse.ArgumentParser()
+
+        parser.add_argument(
+            "benchmark",
+            type=str,
+            help="Name of the benchmark to run(tpch)",
+            default="tpch")
 
         parser.add_argument(
             "-i",
@@ -30,8 +44,16 @@ class Arguments:
             "-d",
             "--device",
             type=str,
-            help="File path to the device to run the benchmark on",
+            help="File path to the device to run the benchmark on(/dev/nvme1)",
             default=None
+        )
+
+        parser.add_argument(
+            "-g",
+            "--generic_device",
+            type=bool,
+            help="Use the generic device path for the benchmark",
+            default=False
         )
 
         parser.add_argument(
@@ -56,7 +78,9 @@ class Arguments:
             iterations=args.iterations,
             device=args.device,
             io_backend=args.backend,
-            use_fdp=args.fdp
+            use_fdp=args.fdp,
+            use_generic_device=args.generic_device,
+            benchmark=args.benchmark
         )
 
         if not arguments.valid():
@@ -65,14 +89,52 @@ class Arguments:
         
         return arguments
 
+type SetupFunc = Callable[[int], duckdb.Database]
+def prepare_setup_func(args: Arguments) -> tuple[SetupFunc, SetupFunc]:
+    """
+    Prepare the database configuration and database extensions that are needed depending on the storage device
+    """
+
+    # TODO: Add buffer manager size as a config parameter
+    def setup_nvme(buffer_manager_size: int):
+        device = NvmeDevice(args.device)
+        nvme_device_path, generic_device_path = setup_device(device, enable_fdp=args.use_fdp)
+        device_path = generic_device_path if args.use_generic_device else nvme_device_path
+
+        config = duckdb.ConnectionConfig(
+            device_path, 
+            args.io_backend, 
+            args.use_fdp)
+
+        db = duckdb.connect("nvmefs:///bench.db", config)
+        db.query(f"SET memory_limit='{buffer_manager_size}MB';")
+
+        return db
+    
+    def setup_normal(buffer_manager_size: int):
+
+        db: duckdb.Database = duckdb.connect("bench.db")
+        db.query(f"SET memory_limit='{buffer_manager_size}MB';")
+
+        return db
+
+    return setup_normal, setup_nvme
+
+
 if __name__ == "__main__":
 
     args: Arguments = Arguments.parse_args()
+    setup_normal, setup_nvme = prepare_setup_func(args)
 
-    print(args)
+    run_benchmark, setup_benchmark = create_benchmark_runner(args.benchmark)
 
-    # db: duckdb.Database = duckdb.connect("nvmefs://bench.db", args.device, args.io_backend, args.use_fdp)
-    # # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
-    # db.query("CREATE TABLE test (a INTEGER, b INTEGER, c INTEGER)")
-    # db.query("INSERT INTO test VALUES (1, 2, 3)")
-    # db.query("SELECT * FROM test")
+    for i in range(args.iterations):
+        buffer_manager_mem_size = 1024 # TODO: This could be something that is a paramter for our setup
+
+        # Setup the database with the correct device config
+        db = setup_nvme(buffer_manager_mem_size) if args.device is not None else setup_normal(buffer_manager_mem_size) 
+
+        setup_benchmark(db)
+
+        # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
+        run_benchmark(db)
