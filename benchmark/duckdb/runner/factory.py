@@ -1,5 +1,4 @@
-import benchmark_types 
-import tpch
+from . import benchmark_types, tpch
 
 
 def create_benchmark_runner(name: str) -> tuple[benchmark_types.BenchmarkRunnerFunc, benchmark_types.BenchmarkSetupFunc]:

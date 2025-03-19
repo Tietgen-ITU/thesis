@@ -1,7 +1,7 @@
 
 import os
 import subprocess
-import pathlib from Path
+from pathlib import Path
 
 class NvmeDevice:
     """
