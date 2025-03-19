@@ -4,6 +4,9 @@ This directory contains files to run benchmarks for the duckdb instance referenc
 
 ## How to run the benchmark
 
+> [!IMPORTANT]
+> Before trying to run the benchmark it is important that the `nvmefs` extension has been built. Take a look at the [project readme](../../README.md) of this repo on how to build the extension.
+
 In order to run the benchmark, you first need to setup up the python environment:
 
 ```sh
