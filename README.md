@@ -1,6 +1,6 @@
 # Thesis 🏆 
 
-This project constitutes the Master's thesis of Emil (@emiloh) and Arne (@arnenator) at the IT University of Copenhagen. The objective of this research is to evaluate the impact of an NVMe SSD with Flexible Data Placement when implemented in a Database System. Specifically, the focus is on analyzing Write Amplification (WA).
+This project is the Master's thesis of Emil (@emiloh) and Andreas (@arnenator) at the IT University of Copenhagen. The objective of this research is to evaluate the impact of an NVMe SSD with Flexible Data Placement when implemented in a Database System. Specifically, the focus is on analyzing Write Amplification (WA).
 
 ## Building nvmefs 🛠️
 
