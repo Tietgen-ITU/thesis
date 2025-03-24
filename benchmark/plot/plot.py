@@ -48,6 +48,22 @@ def get_results(result_path_str):
             
             res[name] = (wafs, hosts, medias)
     
+    pairs = [("no_fdp", "fdp"), ("xnvme_no_fdp", "xnvme_fdp")]
+
+    for (nofdp, fdp) in pairs:
+        if len(res[nofdp][0]) < len(res[fdp][0]):
+            length = len(res[nofdp][0])
+            new_waf = res[fdp][0][:length]
+            new_host = res[fdp][1][:length]
+            new_media = res[fdp][2][:length]
+            res[fdp] = (new_waf, new_host, new_media)
+        elif len(res[nofdp][0]) > len(res[fdp][0]):
+            length = len(res[fdp][0])
+            new_waf = res[nofdp][0][:length]
+            new_host = res[nofdp][1][:length]
+            new_media = res[nofdp][2][:length]
+            res[nofdp] = (new_waf, new_host, new_media)
+
     return res
 
 
@@ -59,7 +75,7 @@ def plot_waf(result_path_str):
     for test in tests:
         no_fdp_y = results[test[1]][0]
         fdp_y = results[test[2]][0]
-        x_ticks = [x * 10 for x in range(0, len(no_fdp_y))]
+        x_ticks = [x * 10 for x in range(1, len(no_fdp_y)+1)]
 
         fig, ax = plt.subplots()
         ax.plot(x_ticks, no_fdp_y, label=test[1])
@@ -84,7 +100,7 @@ def plot_write(result_path_str):
         fdp_host_y = list(map(bytes_to_gb, results[test[2]][1]))
         no_fdp_media_y = list(map(bytes_to_gb, results[test[1]][2]))
         fdp_media_y = list(map(bytes_to_gb, results[test[2]][2]))
-        x_ticks = [x * 10 for x in range(0, len(no_fdp_host_y))]
+        x_ticks = [x * 10 for x in range(1, len(no_fdp_host_y)+1)]
 
         fig, ax = plt.subplots()
         ax.plot(x_ticks, no_fdp_host_y, label=f"{test[1]}_host", color="r")
