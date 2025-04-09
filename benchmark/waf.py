@@ -30,19 +30,22 @@ def get_waf(last_host, last_media):
     return (diff_media/diff_host, host, media)
 
 def measure_waf(out):
+    waf_file = open(out, "w+")
+    
     initial_stats = get_waf(0, 0)
     current_host = initial_stats[1]
     current_media = initial_stats[2]
 
+    waf_file.write(f"{datetime.now()},{initial_stats[0]},{initial_stats[1]},{initial_stats[2]}\n")
+
     points = 0
     max_points = measurement_duration
-    waf_file = open(out, "w+")
     while points < max_points:
         time.sleep(measurement_interval)
         waf_stats = get_waf(current_host, current_media)
         current_host = waf_stats[1]
         current_media = waf_stats[2]
-        waf_file.write(f"{datetime.now()} - {waf_stats}\n")
+        waf_file.write(f"{datetime.now()},{waf_stats[0]},{waf_stats[1]},{waf_stats[2]}\n")
         points += 1
     waf_file.flush()
     os.fsync(waf_file.fileno())
