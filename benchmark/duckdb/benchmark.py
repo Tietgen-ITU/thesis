@@ -148,4 +148,4 @@ if __name__ == "__main__":
         setup_benchmark(db)
 
     #     # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
-    #     run_benchmark(db)
+        run_benchmark(db)
