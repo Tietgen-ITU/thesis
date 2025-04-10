@@ -1,3 +1,4 @@
+import time
 from database.duckdb import Database
 
 TPCH_BENCHMARK_NAME = "name"
@@ -12,14 +13,21 @@ def setup_tpch_benchmark(db: Database):
 
     db.query("USE bench;")
 
-    pass
+def run_tpch_epoch_benchmark(db: Database):
 
-def run_tpch_benchmark(db: Database):
+    results = list(str)
 
     for query_nr in range(1, 22):
-        result = db.query(f"PRAGMA tpch({query_nr});")
+        start = time.perf_counter()
+        db.query(f"PRAGMA tpch({query_nr});")
+        end = time.perf_counter()
+
+        # Get query elapsed time in milliseconds
+        query_elapsed = (end - start) * 1000
+
+        # TODO: Add other metrics to the results?
+        results.append(f"{query_nr};{query_elapsed}")
 
         # TODO: Can we add query result verification???
 
-
-    pass
+    return results
