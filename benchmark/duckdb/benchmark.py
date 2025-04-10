@@ -7,7 +7,9 @@ from database import duckdb
 
 @dataclass
 class Arguments:
-    iterations: int = 0
+    duration: int = 1
+    scale_factor: int = 1
+    buffer_manager_mem_size: int = 50
     device: str = ""
     io_backend: str = ""
     use_fdp: bool = False
@@ -33,16 +35,31 @@ class Arguments:
             default="tpch")
 
         parser.add_argument(
-            "-i",
-            "--iterations",
+            "-s",
+            "--sf",
             type=int,
-            help="Number of iterations to run the benchmark",
+            help="Scale factor to use for the benchmark",
+            default=1)
+
+        parser.add_argument(
+            "-d",
+            "--duration",
+            type=int,
+            help="Duration in minutes to run the benchmark",
             default=10
         )
 
         parser.add_argument(
-            "-d",
-            "--device",
+            "-m",
+            "--memory_limit",
+            type=int,
+            help="Memory limit to use for the benchmark for the buffer manager in MB",
+            default=50
+        )
+
+        parser.add_argument(
+            "-p",
+            "--device_path",
             type=str,
             help="File path to the device to run the benchmark on(/dev/nvme1)",
             default=None
@@ -75,8 +92,10 @@ class Arguments:
         args = parser.parse_args()
         
         arguments: Arguments = Arguments(
-            iterations=args.iterations,
-            device=args.device,
+            duration=args.duration,
+            device=args.device_path,
+            scale_factor=args.sf,
+            buffer_manager_mem_size=args.memory_limit,
             io_backend=args.backend,
             use_fdp=args.fdp,
             use_generic_device=args.generic_device,
@@ -139,13 +158,12 @@ if __name__ == "__main__":
 
     run_benchmark, setup_benchmark = create_benchmark_runner(args.benchmark)
 
-    for i in range(args.iterations): # TODO: This should maybe just be moved to the benchmark runner?
-        buffer_manager_mem_size = 1024 # TODO: This could be something that is a paramter for our setup
+    # Setup the database with the correct device config
+    db: duckdb.Database = setup_database(args.buffer_manager_mem_size)
 
-        # Setup the database with the correct device config
-        db: duckdb.Database = setup_database(buffer_manager_mem_size)
+    setup_benchmark(db)
 
-        setup_benchmark(db)
-
-    #     # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
-        run_benchmark(db)
+    # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
+    metric_results = run_benchmark(db, args.iterations) # TODO: Change iterations to duration in minutes
+    
+    # TODO: Decorate and output to csv maybe?
