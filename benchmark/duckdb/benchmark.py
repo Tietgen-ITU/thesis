@@ -4,6 +4,7 @@ from typing import Callable
 from runner.factory import create_benchmark_runner
 from device.nvme import NvmeDevice, setup_device
 from database import duckdb
+import csv
 
 @dataclass
 class Arguments:
@@ -164,6 +165,15 @@ if __name__ == "__main__":
     setup_benchmark(db)
 
     # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
-    metric_results = run_benchmark(db, args.iterations) # TODO: Change iterations to duration in minutes
+    metric_results = run_benchmark(db, args.iterations) 
     
-    # TODO: Decorate and output to csv maybe?
+    # Write the metric results to a CSV file
+    fdp_name = "fdp" if args.use_fdp else "nofdp"
+    output_file = f"duckdb-bench-{args.io_backend}-{args.scale_factor}-{fdp_name}.csv"
+
+    with open(output_file, mode="w", newline="\n") as file:
+        # Write the rows
+        for result in metric_results:
+            file.write(result)
+
+    print(f"Benchmark results written to {output_file}")
