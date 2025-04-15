@@ -1,5 +1,6 @@
 
 import os
+import pathlib
 import subprocess
 from pathlib import Path
 
@@ -11,6 +12,11 @@ class NvmeDevice:
         self.device_path = device_path
         self.block_size = 4096
         self.device_id = int(device_path[-1])
+
+        # TODO: Document environment variables in readme
+        self.log_id = os.getenv("LOGIDWAF")
+        self.sent_offset = os.getenv("SENT_OFFSET")
+        self.written_offset = os.getenv("WRITTEN_OFFSET")
 
         self.number_of_blocks = self.__get_device_info(device_path)
     
@@ -70,6 +76,26 @@ class NvmeDevice:
             raise Exception("Failed to attach namespace")
         
         return self.device_path + namespace_id, "/dev/ng"+self.device_id+"n"+namespace_id
+
+    def get_written_bytes(self):
+        cmd = f"""nvme get-log {self.device_path} --log-id={self.id_log} --log-len=512 -b"""
+        res = subprocess.check_output(cmd, shell=True)
+        host_written = int.from_bytes(res[self.sent_offset[0]:self.sent_offset[1]+1], byteorder="little") 
+        media_written = int.from_bytes(res[self.written_offset[0]:self.written_offset[1]+1], byteorder="little") 
+
+        if host_written == 0: return (0,0)
+
+        return (host_written, media_written)
+
+
+def calculate_waf(host_written_bytes, media_written_bytes):
+    """
+    Calculates the Write Amplification Factor (WAF) based on host and media written bytes
+    """
+    if host_written_bytes == 0:
+        return 0
+
+    return media_written_bytes / host_written_bytes
 
 def setup_device(device: NvmeDevice, namespace_id:int = 1, enable_fdp: bool = False):
     """
