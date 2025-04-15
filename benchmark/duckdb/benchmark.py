@@ -1,8 +1,12 @@
 from dataclasses import dataclass
 import argparse
+import datetime
+import os
+from threading import Thread
+import time
 from typing import Callable
 from runner.factory import create_benchmark_runner
-from device.nvme import NvmeDevice, setup_device
+from device.nvme import NvmeDevice, setup_device, calculate_waf
 from database import duckdb
 import csv
 
@@ -115,9 +119,8 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
     Prepare the database configuration and database extensions that are needed depending on the storage device
     """
 
-    # TODO: Add buffer manager size as a config parameter
+    device = NvmeDevice(args.device)
     def setup_nvme(buffer_manager_size: int):
-        device = NvmeDevice(args.device)
         nvme_device_path, generic_device_path = setup_device(device, enable_fdp=args.use_fdp)
         device_path = generic_device_path if args.use_generic_device else nvme_device_path
 
@@ -141,7 +144,7 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
         db.query(f"SET memory_limit='{buffer_manager_size}MB';")
         db.query("PRAGMA disable_object_cache;")
 
-        return db
+        return db, device
     
     def setup_normal(buffer_manager_size: int):
 
@@ -149,33 +152,84 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
         db.query(f"SET memory_limit='{buffer_manager_size}MB';")
         db.query("PRAGMA disable_object_cache;")
 
-        return db
+        return db, device
 
     return setup_nvme if args.device is not None else setup_normal
+
+RUN_MEASUREMENT = True
+def start_device_measurements(device: NvmeDevice, file_name: str):
+    """
+    Start the device measurements for the benchmark and returns that thread running the task
+    """
+
+    def run(device: NvmeDevice, file: str):
+        previous_host_written = 0
+        previous_media_written = 0
+        global RUN_MEASUREMENT
+
+        waf_file = open(file, "w+", newline="\n")
+
+        while RUN_MEASUREMENT:
+            time.sleep(600)
+            host_written, media_written = device.get_written_bytes()
+            if host_written == 0:
+                continue
+
+            # Calculate the Write Amplification Factor (WAF)
+            diff_host_written = host_written - previous_host_written
+            diff_media_written = media_written - previous_media_written
+            waf = calculate_waf(diff_host_written, diff_media_written)
+
+            # Write the results to the CSV file
+            waf_file.write(f"{datetime.now()};{diff_host_written},{diff_media_written};{waf}\n")
+
+            previous_host_written = host_written
+            previous_media_written = media_written
+
+        # Ensure that the data is written to file
+        waf_file.flush()
+        os.fsync(waf_file.fileno())
+        waf_file.close()
+    
+    waf_measurement_runner = Thread(target=run, args=(device, file_name))
+    waf_measurement_runner.start()
+    def stop_measurement():
+        global RUN_MEASUREMENT
+        RUN_MEASUREMENT = False
+        waf_measurement_runner.join()
+
+        return
+
+    return stop_measurement
 
 
 if __name__ == "__main__":
 
     args: Arguments = Arguments.parse_args()
-    setup_database = prepare_setup_func(args)
+    setup_device_and_db = prepare_setup_func(args)
+
+    fdp_name = "fdp" if args.use_fdp else "nofdp"
+    name = f"duckdb-bench-{args.io_backend}-{args.scale_factor}-{fdp_name}" 
+    device_output_file = f"{name}-device.csv"
+    output_file = f"{name}.csv"
 
     run_benchmark, setup_benchmark = create_benchmark_runner(args.benchmark)
 
     # Setup the database with the correct device config
-    db: duckdb.Database = setup_database(args.buffer_manager_mem_size)
+    db, device = setup_device_and_db(args.buffer_manager_mem_size)
 
     setup_benchmark(db)
 
     # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
-    metric_results = run_benchmark(db, args.iterations) 
+    stop_measurement = start_device_measurements(device, device_output_file)
+    metric_results = run_benchmark(db, args.duration) 
+    stop_measurement()
     
     # Write the metric results to a CSV file
-    fdp_name = "fdp" if args.use_fdp else "nofdp"
-    output_file = f"duckdb-bench-{args.io_backend}-{args.scale_factor}-{fdp_name}.csv"
 
     with open(output_file, mode="w", newline="\n") as file:
         # Write the rows
         for result in metric_results:
             file.write(result)
 
-    print(f"Benchmark results written to {output_file}")
+    print(f"Benchmark results written to {output_file} and WAF results written to {device_output_file}")
