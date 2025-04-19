@@ -10,7 +10,8 @@ BLOCK_SIZE=4096
 
 # Path
 COMMANDS_DIR=/home/pinar/.local
-BENCHMARK_OUT_DIR=/home/pinar/thesis/benchmark
+BENCHMARK_DIR=/home/pinar/thesis/benchmark
+DB_WORKLOAD_DIR=/home/pinar/thesis/benchmark/fio/db_workload
 
 # Commands
 NVME=$COMMANDS_DIR/nvme-cli/.build/nvme
@@ -111,14 +112,50 @@ setup_device_fdp_enabled() {
     echo "___________________________"
 }
 
-# IO_URING_CMD
-setup_device_fdp_disabled 80
-python3 waf.py "no_fdp.txt" & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./no_fdp.fio --output="./no_fdp_results.txt" --output-format="json"
-setup_device_fdp_enabled 80
-python3 waf.py "fdp.txt" & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./fdp.fio --output="./fdp_results.txt" --output-format="json"
+# Takes 5 arguments: 
+# - 1. name - name fio file without extension
+# - 2. workload - string that specifies workload
+# - 3. temp size - int that specifies the percentage size of temporary storage 
+# - 4. duration - duration of experiment in seconds (default 1 hour)
+# - 5. interval - the interval in which measurements should be taken (default 10 min)
+run_workload() {
+    local var IODEPTH=32
+    local var THREADS=1
+    local var L_DEVICE=$DEVICE_NG
 
-# xNVMe IO_URING_CMD
-setup_device_fdp_disabled 80
-python3 waf.py "xnvme_no_fdp.txt" & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./xnvme_no_fdp.fio --output="./xnvme_no_fdp_results.txt" --output-format="json"
-setup_device_fdp_enabled 80
-python3 waf.py "xnvme_fdp.txt" & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./xnvme_fdp.fio --output="./xnvme_fdp_results.txt" --output-format="json"
+    local var DATE=$(date +"%d_%m_%y")
+    local var OUTDIR=""
+    
+    if [[ "$2" == "database" ]]; then
+        OUTDIR="$DB_WORKLOAD_DIR/$DATE/TEMP_$3"
+        python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/$1.txt" $5 $(($4 / $5 )) & IODEPTH=$IODEPTH THREADS=$THREADS TEMP_SIZE=$3 DEVICE=$L_DEVICE DURATION=$4 $FIO "$DB_WORKLOAD_DIR/$1.fio" --output="$OUTDIR/$1_result.txt" --output-format="json"
+    fi
+}
+
+WORKLOAD="database"
+TEMP_SIZES=()
+INTERVAL=0
+DURATION=0
+while getopts ":w:i:d:t" opt
+    do 
+        case $opt in
+            w) echo $OPTARG; WORKLOAD=$OPTARG;;
+            t) echo $OPTARG; TEMP_SIZES+=$OPTARG;;
+            i) echo $OPTARG; INTERVAL=$OPTARG;;
+            d) echo $OPTARG; DURATION=$OPTARG;;
+        esac
+done
+
+for tsize in "${TEMP_SIZES[@]}"
+do
+    setup_device_fdp_disabled
+    run_workload "no_fdp" $WORKLOAD $tsize $DURATION $INTERVAL
+    setup_device_fdp_enabled
+    run_workload "fdp" $WORKLOAD $tsize $DURATION $INTERVAL
+
+    setup_device_fdp_disabled
+    run_workload "xnvme_no_fdp" $WORKLOAD $tsize $DURATION $INTERVAL
+    setup_device_fdp_enabled
+    run_workload "xnvme_fdp" $WORKLOAD $tsize $DURATION $INTERVAL
+    
+done

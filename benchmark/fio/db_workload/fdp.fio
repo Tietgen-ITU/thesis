@@ -6,7 +6,7 @@ numjobs=${THREADS}
 ioengine=io_uring_cmd
 fdp=1
 time_based=1
-runtime=3h
+runtime=${DURATION}
 group_reporting
 norandommap=1
 
@@ -21,11 +21,11 @@ rate=310mi,310mi
 new_group
 
 [writeahead]
-rw=readwrite
+rw=write
 fdp_pli=5
 offset=94%
 size=1%
-rate=5mi,5mi
+rate=,5mi
 new_group
 
 [temporary]

@@ -14,7 +14,7 @@ id_log_xnvme = "0x1"
 sent_offset = list(map(int, os.getenv("SENT_OFFSET").split("-")))
 written_offset = list(map(int, os.getenv("WRITTEN_OFFSET").split("-")))
 measurement_interval = 600
-measurement_duration = 36 # every 10 min for 3 hours
+measurement_amount = 36 # every 10 min for 3 hours
 
 def get_waf(last_host, last_media):
     cmd = f"""{nvme} get-log {device} --log-id={id_log} --log-len=512 -b"""
@@ -30,6 +30,7 @@ def get_waf(last_host, last_media):
     return (diff_media/diff_host, host, media)
 
 def measure_waf(out):
+    os.makedirs(out, exist_ok=True)
     waf_file = open(out, "w+")
     
     initial_stats = get_waf(0, 0)
@@ -39,7 +40,7 @@ def measure_waf(out):
     waf_file.write(f"{datetime.now()},{initial_stats[0]},{initial_stats[1]},{initial_stats[2]}\n")
 
     points = 0
-    max_points = measurement_duration
+    max_points = measurement_amount
     while points < max_points:
         time.sleep(measurement_interval)
         waf_stats = get_waf(current_host, current_media)
@@ -53,4 +54,6 @@ def measure_waf(out):
 
 if __name__ == "__main__":
     out = sys.argv[1]
+    measurement_interval = int(sys.argv[2])
+    measurement_amount = int(sys.argv[3])
     measure_waf(out)

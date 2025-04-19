@@ -5,7 +5,7 @@ bs=256ki
 numjobs=${THREADS}
 ioengine=io_uring_cmd
 time_based=1
-runtime=3h
+runtime=${DURATION}
 group_reporting
 norandommap=1
 
@@ -19,7 +19,7 @@ rate=310mi,310mi
 new_group
 
 [writeahead]
-rw=readwrite
+rw=write
 offset=94%
 size=1%
 rate=5mi,5mi
