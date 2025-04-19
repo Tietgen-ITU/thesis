@@ -121,15 +121,15 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
 
     device = NvmeDevice(args.device)
     def setup_nvme(buffer_manager_size: int):
-        nvme_device_path, generic_device_path = setup_device(device, enable_fdp=args.use_fdp)
-        device_path = generic_device_path if args.use_generic_device else nvme_device_path
+        device_namespace = setup_device(device, enable_fdp=args.use_fdp)
+        device_path = device_namespace.get_generic_device_path() if args.use_generic_device else device_namespace.get_device_path()
 
         # Ensure that the extension is loaded and the
         con = duckdb.connect(config={"allow_unsigned_extensions": "true"})
         con.load_extension("nvmefs")
         con.execute(f"""CREATE OR REPLACE PERSISTENT SECRET nvmefs (
                         TYPE NVMEFS,
-                        nvme_device_path '{device.device_path}',
+                        nvme_device_path '{device_path}',
                         fdp_plhdls       '{7}'
                     );""")
     
@@ -231,5 +231,7 @@ if __name__ == "__main__":
         # Write the rows
         for result in metric_results:
             file.write(result)
+    
+    device.clean_device()
 
     print(f"Benchmark results written to {output_file} and WAF results written to {device_output_file}")
