@@ -1,7 +1,7 @@
 import time
 from database.duckdb import Database
 
-TPCH_BENCHMARK_NAME = "name"
+TPCH_BENCHMARK_NAME = "tpch"
 
 def setup_tpch_benchmark(db: Database):
     # TODO: Load the tpch extension to be used when running the benchmarks
