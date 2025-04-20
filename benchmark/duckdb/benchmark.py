@@ -20,6 +20,7 @@ class Arguments:
     use_fdp: bool = False
     use_generic_device: bool = False
     benchmark: str = ""
+    mount_path: str = None
 
     def valid(self) -> bool:
         print(self)
@@ -94,6 +95,14 @@ class Arguments:
             default=False
         )
 
+        parser.add_argument(
+            "-m",
+            "--mount_path",
+            type=str,
+            help="Mount path to use for the benchmark",
+            default=None
+        )
+
         args = parser.parse_args()
         
         arguments: Arguments = Arguments(
@@ -105,6 +114,7 @@ class Arguments:
             use_fdp=args.fdp,
             use_generic_device=args.generic_device,
             benchmark=args.benchmark
+            mount_path=args.mount_path
         )
 
         if not arguments.valid():
@@ -154,7 +164,7 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
 
         return db, device
 
-    return setup_nvme if args.device is not None else setup_normal
+    return setup_nvme if args.mount_path is None else setup_normal
 
 RUN_MEASUREMENT = True
 def start_device_measurements(device: NvmeDevice, file_name: str):
