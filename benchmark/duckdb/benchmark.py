@@ -135,17 +135,6 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
         device_path = device_namespace.get_generic_device_path() if args.use_generic_device else device_namespace.get_device_path()
 
         # Ensure that the extension is loaded and the
-        con = duckdb.connect(config={"allow_unsigned_extensions": "true"})
-        con.load_extension("nvmefs")
-        con.execute(f"""CREATE OR REPLACE PERSISTENT SECRET nvmefs (
-                        TYPE NVMEFS,
-                        nvme_device_path '{device_path}',
-                        fdp_plhdls       '{7}'
-                    );""")
-    
-        con.execute("ATTACH DATABASE 'nvmefs:///bench.db' AS bench (READ_WRITE);")
-        con.close()
-
         config = duckdb.ConnectionConfig(
             device_path, 
             args.io_backend, 

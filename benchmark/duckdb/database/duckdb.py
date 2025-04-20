@@ -25,13 +25,16 @@ class Database(ABC):
 
     def __connect(self):
         if not self.get_is_connected:
-            self.connection = duckdb.connect(self.db_path)
+            self.connection = duckdb.connect(config={"allow_unsigned_extensions": "true"})
 
     def query(self, query: str):
         return self.connection.execute(query)
 
     def add_extension(self, name: str):
         self.connection.load_extension(name)
+    
+    def install_extension(self, name: str):
+        self.connection.install_extension(name)
     
 class QuackDatabase(Database):
     """
@@ -58,19 +61,29 @@ class NvmeDatabase(Database):
         super().__init__(db_path)
     
     def _setup(self):
-        add_extension("../../nvmefs/build/release/extension/nvmefs/nvmefs.duckdb_extension", self)
-        run_query(f"""CREATE PERSISTENT SECRET nvmefs (
+        install_extension("../../nvmefs/build/release/extension/nvmefs/nvmefs.duckdb_extension", self)
+        self.__connect()
+        self.add_extension("nvmefs")
+        self.query(f"""CREATE OR REPLACE PERSISTENT SECRET nvmefs (
                         TYPE NVMEFS,
                         nvme_device_path '{self.device_path}',
                         fdp_plhdls       '{self.number_of_fdp_handles}',
                     );""")
-        self.__connect()
+        
+        self.query(f"ATTACH DATABASE '{self.db_path}' AS test (READ_WRITE);", self)
+        self.query("USE bench;")
 
 def add_extension(name: str, db: Database = None):
     if db is None or not db.get_is_connected:
         duckdb.load_extension(name)
     else:
         db.add_extension(name)
+
+def install_extension(name: str, db: Database = None):
+    if db is None or not db.get_is_connected:
+        duckdb.install_extension(name)
+    else:
+        db.install_extension(name)
 
 def run_query(query: str, db: Database = None):
     if db is None or not db.get_is_connected:
