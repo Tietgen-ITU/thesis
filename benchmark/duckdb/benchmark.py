@@ -74,8 +74,8 @@ class Arguments:
         parser.add_argument(
             "-g",
             "--generic_device",
-            type=bool,
             help="Use the generic device path for the benchmark",
+            action="store_true",
             default=False
         )
 
@@ -96,7 +96,7 @@ class Arguments:
         )
 
         parser.add_argument(
-            "-m",
+            "-mp",
             "--mount_path",
             type=str,
             help="Mount path to use for the benchmark",
@@ -113,7 +113,7 @@ class Arguments:
             io_backend=args.backend,
             use_fdp=args.fdp,
             use_generic_device=args.generic_device,
-            benchmark=args.benchmark
+            benchmark=args.benchmark,
             mount_path=args.mount_path
         )
 
