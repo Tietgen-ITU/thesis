@@ -72,6 +72,20 @@ class NvmeDevice:
         number_of_blocks = int(block_output)
 
         return number_of_blocks
+    
+    def get_ns_block_amount(self, namespace_id: int):
+        """
+        Returns the number of blocks in the namespace
+        """
+        for namespace in self.namespaces:
+            if namespace.namespace_id == namespace_id:
+                return namespace.number_of_blocks
+        
+        command = f"nvme id-ns {self.base_device_path} -n {namespace_id} | grep 'nvmcap' | sed 's/,//g' | awk -v BS={self.block_size} '{{print $3/BS}}'"
+        block_output = subprocess.check_output(command, shell=True)
+        number_of_blocks = int(block_output) 
+
+        return number_of_blocks
 
     def deallocate(self, namespace: NvmeDeviceNamespace):
         """
@@ -79,6 +93,20 @@ class NvmeDevice:
         """
 
         namespace.deallocate_blocks()
+    
+    def deallocate_nsid(self, namespace_id: int):
+        """
+        Deallocates all blocks on the device
+        """
+        for namespace in self.namespaces:
+            if namespace.namespace_id == namespace_id:
+                namespace.deallocate_blocks()
+                return
+        
+        number_of_blocks = self.get_ns_block_amount(namespace_id)
+        os.system(f"nvme dsm {self.base_device_path} --namespace-id={namespace_id} --ad -s 0 -b {number_of_blocks}")
+
+
 
     def enable_fdp(self):
         """
@@ -98,6 +126,18 @@ class NvmeDevice:
         """
 
         namespace.delete()
+    
+    def delete_namespace_nsid(self, namespace_id: int):
+        """
+        Deletes a namespace on the device
+        """
+
+        for namespace in self.namespaces:
+            if namespace.namespace_id == namespace_id:
+                namespace.delete()
+                return
+        
+        os.system(f"nvme delete-ns {self.base_device_path} --namespace-id={namespace_id}")
 
     def create_namespace(self, device_path: str, namespace_id: int, enable_fdp: bool = False, size: float = 1.0, mount_path:str = None):
         """
@@ -155,6 +195,7 @@ class NvmeDevice:
         """
         
         for namespace in self.namespaces:
+            namespace.deallocate_blocks()
             namespace.delete()
 
 def calculate_waf(host_written_bytes, media_written_bytes):
@@ -171,10 +212,11 @@ def setup_device(device: NvmeDevice, namespace_id:int = 1, enable_fdp: bool = Fa
     Sets up the device by creating a namespace and enabling FDP if required
     """
 
+    # TODO: Check if unknown namespace is already mounted and unmount before dealocating and delete of ns
     device_ns_path = pathlib.Path(f"{device.base_device_path}n{namespace_id}")
     if device_ns_path.exists():
-        device.deallocate(namespace_id)
-        device.delete_namespace(namespace_id)
+        device.deallocate_nsid(namespace_id)
+        device.delete_namespace_nsid(namespace_id)
     
     # Ensure that FDP is enabled / disabled
     if enable_fdp:
