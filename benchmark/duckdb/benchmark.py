@@ -230,7 +230,7 @@ if __name__ == "__main__":
     with open(output_file, mode="w", newline="\n") as file:
         # Write the rows
         for result in metric_results:
-            file.writelines(result)
+            file.write(result)
     
     device.reset()
 

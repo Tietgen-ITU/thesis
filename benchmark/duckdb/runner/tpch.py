@@ -25,7 +25,7 @@ def run_tpch_epoch_benchmark(db: Database):
         query_elapsed = (end - start) * 1000
 
         # TODO: Add other metrics to the results?
-        results.append(f"{query_nr};{query_elapsed}")
+        results.append(f"{query_nr};{query_elapsed}\n")
 
         # TODO: Can we add query result verification???
 
