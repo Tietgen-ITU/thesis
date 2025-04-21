@@ -188,6 +188,7 @@ def start_device_measurements(device: NvmeDevice, file_name: str):
             previous_media_written = media_written
 
         # Ensure that the data is written to file
+        print("Flushing WAF data to file")
         waf_file.flush()
         os.fsync(waf_file.fileno())
         waf_file.close()
@@ -231,7 +232,7 @@ if __name__ == "__main__":
     with open(output_file, mode="w", newline="\n") as file:
         # Write the rows
         for result in metric_results:
-            file.write(result)
+            file.writelines(result)
     
     device.reset()
 
