@@ -6,7 +6,7 @@ from pathlib import Path
 
 class NvmeDeviceNamespace:
     def __init__(self, device_path: str, namespace_id: int, number_of_blocks: int, is_mounted: bool = False):
-        self.device_path = device_path
+        self.base_device_path = device_path
         self.namespace_id = namespace_id
         self.is_mounted = is_mounted
         self.block_size = 4096
