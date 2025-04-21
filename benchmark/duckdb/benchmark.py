@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import argparse
-import datetime
 import os
 from threading import Thread
 import time
@@ -8,7 +7,7 @@ from typing import Callable
 from runner.factory import create_benchmark_runner
 from device.nvme import NvmeDevice, setup_device, calculate_waf
 from database import duckdb
-import csv
+from datetime import datetime
 
 @dataclass
 class Arguments:
