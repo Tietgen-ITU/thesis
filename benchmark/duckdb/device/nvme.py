@@ -121,17 +121,18 @@ class NvmeDevice:
         os.system(f"nvme dsm {self.base_device_path} --namespace-id={namespace_id} --ad -s 0 -b {number_of_blocks}")
 
 
-
     def enable_fdp(self):
         """
         Enables flexible data placement(FDP) on the device
         """
+
         os.system(f"nvme set-feature {self.base_device_path} -f 0x1D -c 1 -s")
 
     def disable_fdp(self):
         """
         Disables flexible data placement(FDP) on the device
         """
+        
         os.system(f"nvme set-feature {self.base_device_path} -f 0x1D -c 0 -s")
 
     def delete_namespace(self, namespace: NvmeDeviceNamespace):
@@ -166,6 +167,7 @@ class NvmeDevice:
         # Create a namespace on the device
         result = 1
         ns_number_of_blocks = int(self.number_of_blocks*size)
+        
         if enable_fdp:
             result = os.system(f"nvme create-ns {device_path} -b {self.block_size} --nsze={ns_number_of_blocks} --ncap={ns_number_of_blocks} --nphndls=7 --phndls=0,1,2,3,4,5,6")
         else: 
@@ -235,6 +237,7 @@ def setup_device(device: NvmeDevice, namespace_id:int = 1, enable_fdp: bool = Fa
 
     # TODO: Check if unknown namespace is already mounted and unmount before dealocating and delete of ns
     device_ns_path = pathlib.Path(f"{device.base_device_path}n{namespace_id}")
+
     if device_ns_path.exists():
         device.deallocate_nsid(namespace_id)
         device.delete_namespace_nsid(namespace_id)
