@@ -18,7 +18,7 @@ def create_benchmark_runner(name: str) -> tuple[benchmark_types.BenchmarkRunnerF
 
             start_time = get_time()
             delta = 0
-            consolidated_results = list[str]
+            consolidated_results: list[str] = []
 
             while delta < duration_minutes:
                 # Run the benchmark
