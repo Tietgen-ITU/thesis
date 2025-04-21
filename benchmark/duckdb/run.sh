@@ -2,7 +2,7 @@
 DURATION=20
 DEVICE="/dev/nvme1"
 
-./init.sh
+source ./init.sh
 
 # Run the benchmark with the generic device, io_uring_cmd, and fdp
 python3 benchmark.py -d $DURATION --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 5120 --fdp tpch
