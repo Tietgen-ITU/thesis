@@ -48,6 +48,17 @@ class NvmeDeviceNamespace:
         return f"/dev/nvme{self.device_id}n{self.namespace_id}"
     
 
+    def get_written_bytes(self):
+        cmd = f"""nvme get-log {self.get_device_path()} --log-id={self.log_id} --log-len=512 -b"""
+        res = subprocess.check_output(cmd, shell=True)
+        host_written = int.from_bytes(res[self.sent_offset[0]:self.sent_offset[1]+1], byteorder="little") 
+        media_written = int.from_bytes(res[self.written_offset[0]:self.written_offset[1]+1], byteorder="little") 
+
+        if host_written == 0: return (0,0)
+
+        return (host_written, media_written)
+    
+
 class NvmeDevice:
     """
     Represents an NVMe device. This class is used to interact with the administrative interface of the NVMe device using the nvme client.
@@ -181,6 +192,13 @@ class NvmeDevice:
                 raise Exception("Failed to mount namespace")
         
         return new_namespace
+
+    def get_written_bytes_nsid(self, namespace_id: int):
+        for namespace in self.namespaces:
+            if namespace.namespace_id == namespace_id:
+                return namespace.get_written_bytes()
+
+        raise Exception(f"Namespace {namespace_id} not found")
 
     def get_written_bytes(self):
         cmd = f"""nvme get-log {self.base_device_path} --log-id={self.log_id} --log-len=512 -b"""
