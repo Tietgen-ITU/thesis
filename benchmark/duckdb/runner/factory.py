@@ -20,6 +20,8 @@ def create_benchmark_runner(name: str) -> tuple[benchmark_types.BenchmarkRunnerF
             delta = 0
             consolidated_results: list[str] = []
 
+            print(f"Running benchmark '{name}' for {duration_minutes} minutes...")
+
             while delta < duration_minutes:
                 # Run the benchmark
                 results = benchmark(db)
