@@ -64,6 +64,9 @@ class NvmeDevice:
         self.sent_offset = os.getenv("SENT_OFFSET")
         self.written_offset = os.getenv("WRITTEN_OFFSET")
 
+        if self.log_id is None or self.sent_offset is None or self.written_offset is None:
+            raise Exception("Environment variables LOGIDWAF, SENT_OFFSET and WRITTEN_OFFSET must be set")
+
         self.number_of_blocks = self.__get_device_info(device_path)
     
     def __get_device_info(self, device_path: str):
