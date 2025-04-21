@@ -134,6 +134,8 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
         device_namespace = setup_device(device, enable_fdp=args.use_fdp)
         device_path = device_namespace.get_generic_device_path() if args.use_generic_device else device_namespace.get_device_path()
 
+        print(f"Using device path: {device_path}")
+
         # Ensure that the extension is loaded and the
         config = duckdb.ConnectionConfig(
             device_path, 
