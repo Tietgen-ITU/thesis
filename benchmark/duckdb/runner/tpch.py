@@ -7,9 +7,10 @@ def setup_tpch_benchmark(db: Database):
     # TODO: Load the tpch extension to be used when running the benchmarks
     db.add_extension("tpch")
 
-    db.query("ATTACH DATABASE 'tpch-1.db' AS tpch (READ_WRITE);") # TODO: Add parameter with file to copy data from
-    db.query("COPY FROM DATABASE tpch TO bench;")
-    db.query("DETACH DATABASE tpch;")
+    # db.query("ATTACH DATABASE 'tpch-1.db' AS tpch (READ_WRITE);") # TODO: Add parameter with file to copy data from
+    # db.query("COPY FROM DATABASE tpch TO bench;")
+    # db.query("DETACH DATABASE tpch;")
+    db.query("CALL dbgen(sf=1);")
 
 def run_tpch_epoch_benchmark(db: Database):
 

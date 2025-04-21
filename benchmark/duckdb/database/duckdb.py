@@ -68,7 +68,8 @@ class NvmeDatabase(Database):
         self.query(f"""CREATE OR REPLACE PERSISTENT SECRET nvmefs (
                         TYPE NVMEFS,
                         nvme_device_path '{self.device_path}',
-                        fdp_plhdls       '{self.number_of_fdp_handles}'
+                        fdp_plhdls       '{self.number_of_fdp_handles}',
+                        backend          '{self.backend}',
                     );""")
         
         self.query(f"ATTACH DATABASE '{self.db_path}' AS bench (READ_WRITE);")
