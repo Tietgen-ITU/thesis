@@ -180,7 +180,7 @@ class NvmeDevice:
         return new_namespace
 
     def get_written_bytes(self):
-        cmd = f"""nvme get-log {self.base_device_path} --log-id={self.id_log} --log-len=512 -b"""
+        cmd = f"""nvme get-log {self.base_device_path} --log-id={self.log_id} --log-len=512 -b"""
         res = subprocess.check_output(cmd, shell=True)
         host_written = int.from_bytes(res[self.sent_offset[0]:self.sent_offset[1]+1], byteorder="little") 
         media_written = int.from_bytes(res[self.written_offset[0]:self.written_offset[1]+1], byteorder="little") 
