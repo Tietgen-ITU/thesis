@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 
 class NvmeDeviceNamespace:
-    def __init__(self, device_path: str, namespace_id: int, number_of_blocks: int, is_mounted: bool = False):
+    def __init__(self, device_path: str, namespace_id: int, number_of_blocks: int, log_id: str, sent_offset: list[int], written_offset:list[int], is_mounted: bool = False):
         self.base_device_path = device_path
         self.namespace_id = namespace_id
         self.is_mounted = is_mounted
@@ -13,9 +13,9 @@ class NvmeDeviceNamespace:
         self.device_id = int(device_path[-1])
 
         # TODO: Document environment variables in readme
-        self.log_id = os.getenv("LOGIDWAF")
-        self.sent_offset = os.getenv("SENT_OFFSET")
-        self.written_offset = os.getenv("WRITTEN_OFFSET")
+        self.log_id = log_id
+        self.sent_offset = sent_offset
+        self.written_offset = written_offset
 
         self.number_of_blocks = number_of_blocks
 
@@ -181,7 +181,7 @@ class NvmeDevice:
             raise Exception("Failed to attach namespace")
         
         is_mounted = mount_path is not None
-        new_namespace = NvmeDeviceNamespace(device_path, namespace_id, ns_number_of_blocks, is_mounted)
+        new_namespace = NvmeDeviceNamespace(device_path, namespace_id, ns_number_of_blocks, self.log_id, self.sent_offset, self.written_offset, is_mounted)
         self.namespaces.append(new_namespace)
 
         if is_mounted:
