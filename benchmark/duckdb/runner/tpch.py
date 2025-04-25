@@ -1,16 +1,18 @@
+import os
 import time
 from database.duckdb import Database
 
 TPCH_BENCHMARK_NAME = "tpch"
 
-def setup_tpch_benchmark(db: Database):
-    # TODO: Load the tpch extension to be used when running the benchmarks
+def setup_tpch_benchmark(db: Database, input_dir_path: str, scale_factor: int):
+    input_file_path = os.path.join(input_dir_path, f"tpch-{scale_factor}.db")
+
     db.add_extension("tpch")
 
-    # db.query("ATTACH DATABASE 'tpch-1.db' AS tpch (READ_WRITE);") # TODO: Add parameter with file to copy data from
-    # db.query("COPY FROM DATABASE tpch TO bench;")
-    # db.query("DETACH DATABASE tpch;")
-    db.query("CALL dbgen(sf=1);")
+    db.query(f"ATTACH DATABASE '{input_file_path}' AS tpch (READ_WRITE);")
+    db.query("COPY FROM DATABASE tpch TO bench;")
+    db.query("DETACH DATABASE tpch;")
+    # db.query("CALL dbgen(sf=1);")
 
 def run_tpch_epoch_benchmark(db: Database):
 
@@ -24,9 +26,6 @@ def run_tpch_epoch_benchmark(db: Database):
         # Get query elapsed time in milliseconds
         query_elapsed = (end - start) * 1000
 
-        # TODO: Add other metrics to the results?
         results.append(f"{query_nr};{query_elapsed}\n")
-
-        # TODO: Can we add query result verification???
 
     return results

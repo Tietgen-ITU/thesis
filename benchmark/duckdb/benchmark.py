@@ -20,6 +20,7 @@ class Arguments:
     use_generic_device: bool = False
     benchmark: str = ""
     mount_path: str = None
+    input_dir: str = "./"
 
     def valid(self) -> bool:
         print(self)
@@ -102,6 +103,14 @@ class Arguments:
             default=None
         )
 
+        parser.add_argument(
+            "-i",
+            "--input_directory",
+            type=str,
+            help="Input directory to use for the benchmark. That is the place where data files are stored and can data can be loaded from",
+            default="./"
+        )
+
         args = parser.parse_args()
         
         arguments: Arguments = Arguments(
@@ -113,7 +122,8 @@ class Arguments:
             use_fdp=args.fdp,
             use_generic_device=args.generic_device,
             benchmark=args.benchmark,
-            mount_path=args.mount_path
+            mount_path=args.mount_path,
+            input_dir=args.input_directory
         )
 
         if not arguments.valid():
@@ -202,7 +212,6 @@ def start_device_measurements(device: NvmeDevice, file_name: str):
 
     return stop_measurement
 
-
 if __name__ == "__main__":
 
     args: Arguments = Arguments.parse_args()
@@ -218,7 +227,7 @@ if __name__ == "__main__":
     # Setup the database with the correct device config
     db, device = setup_device_and_db(args.buffer_manager_mem_size)
 
-    setup_benchmark(db)
+    setup_benchmark(db, args.input_dir, args.scale_factor)
 
     # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
     stop_measurement = start_device_measurements(device, device_output_file)
