@@ -246,7 +246,3 @@ if __name__ == "__main__":
 
     if args.workload == "database":
         Database.gen_database_workload(args)
-
-
-
-
