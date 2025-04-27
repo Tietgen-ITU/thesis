@@ -152,6 +152,7 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
             args.use_fdp)
         db = duckdb.connect("nvmefs:///bench.db", config)
         db.query(f"SET memory_limit='{buffer_manager_size}MB';")
+        db.query("SET threads=1;")
         db.query("PRAGMA disable_object_cache;")
 
         return db, device
@@ -160,6 +161,7 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
 
         db: duckdb.Database = duckdb.connect("bench.db")
         db.query(f"SET memory_limit='{buffer_manager_size}MB';")
+        db.query("SET threads=1;")
         db.query("PRAGMA disable_object_cache;")
 
         return db, device
