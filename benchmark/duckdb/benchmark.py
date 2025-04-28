@@ -223,7 +223,8 @@ if __name__ == "__main__":
     setup_device_and_db = prepare_setup_func(args)
 
     fdp_name = "fdp" if args.use_fdp else "nofdp"
-    name = f"duckdb-{args.benchmark}-mem{args.buffer_manager_mem_size}-{args.io_backend}-sf{args.scale_factor}-{fdp_name}" 
+    device_name = "nvme" if args.mount_path is None else "normal"
+    name = f"duckdb-{args.benchmark}-{device_name}-mem{args.buffer_manager_mem_size}-{args.io_backend}-sf{args.scale_factor}-{fdp_name}" 
     device_output_file = f"{name}-device.csv"
     output_file = f"{name}.csv"
 
