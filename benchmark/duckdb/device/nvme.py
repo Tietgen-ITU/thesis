@@ -10,7 +10,7 @@ class NvmeDeviceNamespace:
         self.namespace_id = namespace_id
         self.is_mounted = is_mounted
         self.block_size = 4096
-        self.device_id = int(device_path[-1]) if is_mounted else 1
+        self.device_id = int(device_path[-1])
 
         # TODO: Document environment variables in readme
         self.log_id = log_id
@@ -68,7 +68,7 @@ class NvmeDevice:
         self.namespaces = []
         self.base_device_path = device_path
         self.block_size = 4096
-        self.device_id = int(device_path[-1]) if device_path is not None else 1
+        self.device_id = int(device_path[-1])
 
         # TODO: Document environment variables in readme
         self.log_id = os.getenv("LOGIDWAF")

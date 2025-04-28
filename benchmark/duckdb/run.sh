@@ -17,4 +17,4 @@ python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DE
 # python3 benchmark.py -i $DURATION -d $DEVICE -b "io_uring" tpch
 
 # Run regular benchmark with default file system(could be a base line)
-python3 benchmark.py -d $DURATION --mount_path $MOUNT --input_directory $INPUT_DIR tpch
+python3 benchmark.py -d $DURATION --mount_path $MOUNT --device_path $DEVICE --input_directory $INPUT_DIR -m 75 tpch
