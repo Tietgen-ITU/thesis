@@ -182,7 +182,7 @@ def start_device_measurements(device: NvmeDevice, file_name: str):
         waf_file = open(file, "w+", newline="\n")
 
         while RUN_MEASUREMENT:
-            time.sleep(600)
+            time.sleep(30)
             host_written, media_written = device.get_written_bytes_nsid(1)
             if host_written == 0:
                 continue
