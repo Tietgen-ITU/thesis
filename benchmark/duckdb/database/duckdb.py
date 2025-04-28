@@ -44,6 +44,9 @@ class QuackDatabase(Database):
     def __init__(self, db_path: str):
         super().__init__(db_path)
         super()._connect()
+
+        self.query(f"ATTACH DATABASE '{self.db_path}' AS bench (READ_WRITE);")
+        self.query("USE bench;")
     
     def _setup(self):
         print("Setting up QuackDatabase")
