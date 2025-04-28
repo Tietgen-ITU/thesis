@@ -159,8 +159,10 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
     
     def setup_normal(buffer_manager_size: int):
 
+        normal_db_path = os.path.join(args.mount_path, "bench.db")
+
         setup_device(device, mount_path=args.mount_path)
-        db: duckdb.Database = duckdb.connect("bench.db")
+        db: duckdb.Database = duckdb.connect(normal_db_path)
         db.query(f"SET memory_limit='{buffer_manager_size}MB';")
         db.query("SET threads=1;")
         db.query("PRAGMA disable_object_cache;")
