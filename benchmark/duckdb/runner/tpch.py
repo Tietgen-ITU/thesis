@@ -23,8 +23,11 @@ def run_tpch_epoch_benchmark(db: Database):
 
     for query_nr in range(1, 22):
         start = time.perf_counter()
-        db.query(f"PRAGMA tpch({query_nr});")
+        print(f"Running TPCH query {query_nr}...")
+        results = db.query(f"PRAGMA tpch({query_nr});").fetchall()
         end = time.perf_counter()
+
+        print(f"TPCH query {query_nr} results: {results[0]}")
 
         # Get query elapsed time in milliseconds
         query_elapsed = (end - start) * 1000
