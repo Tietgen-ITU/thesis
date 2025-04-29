@@ -132,14 +132,14 @@ class Arguments:
         
         return arguments
 
-type SetupFunc = Callable[[int], duckdb.Database]
+type SetupFunc = Callable[[], duckdb.Database]
 def prepare_setup_func(args: Arguments) -> SetupFunc:
     """
     Prepare the database configuration and database extensions that are needed depending on the storage device
     """
 
     device = NvmeDevice(args.device)
-    def setup_nvme(buffer_manager_size: int):
+    def setup_nvme():
         device_namespace = setup_device(device, enable_fdp=args.use_fdp)
         device_path = device_namespace.get_generic_device_path() if args.use_generic_device else device_namespace.get_device_path()
 
@@ -150,22 +150,18 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
             device_path, 
             args.io_backend, 
             args.use_fdp)
+        duckdb.connect("nvmefs:///bench.db", config) # To set secrets first # TODO: Change this in the NvmeDatabase
+
         db = duckdb.connect("nvmefs:///bench.db", config)
-        db.query(f"SET memory_limit='{buffer_manager_size}MB';")
-        db.query("SET threads=1;")
-        db.query("PRAGMA disable_object_cache;")
 
         return db, device
     
-    def setup_normal(buffer_manager_size: int):
+    def setup_normal():
 
         normal_db_path = os.path.join(args.mount_path, "bench.db")
 
         setup_device(device, mount_path=args.mount_path)
         db: duckdb.Database = duckdb.connect(normal_db_path)
-        db.query(f"SET memory_limit='{buffer_manager_size}MB';")
-        db.query("SET threads=1;")
-        db.query("PRAGMA disable_object_cache;")
 
         return db, device
 
@@ -231,9 +227,9 @@ if __name__ == "__main__":
     run_benchmark, setup_benchmark = create_benchmark_runner(args.benchmark)
 
     # Setup the database with the correct device config
-    db, device = setup_device_and_db(args.buffer_manager_mem_size)
+    db, device = setup_device_and_db()
 
-    setup_benchmark(db, args.input_dir, args.scale_factor)
+    setup_benchmark(db, args.input_dir, args.buffer_manager_mem_size, args.scale_factor)
 
     # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
     stop_measurement = start_device_measurements(device, device_output_file)
