@@ -134,7 +134,7 @@ run_workload() {
             L_DEVICE=$DEVICE_URI
         fi
 
-        python3 "$FIO_BENCH_DIR/gen-fio.py" --workload database --device $L_DEVICE -be $6 --out_dir $OUTDIR -bs 256ki --timebased -d 10800 -pcts $2 -ft 3       
+        python3 "$FIO_BENCH_DIR/gen_fio.py" --workload database --device $L_DEVICE -be $6 --out_dir $OUTDIR -bs 256ki --timebased -d 10800 -pcts $2 -ft 3       
         #setup_device_fdp_disabled
         #python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/no_fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/no_fdp.fio" --output="$OUTDIR/no_fdp_result.txt" --output-format="json"
         #setup_device_fdp_enabled
@@ -152,11 +152,11 @@ INTERVAL=0
 DURATION=0
 DEV_TYPE=""
 BACKEND=""
-while getopts ":w:i:d:v:b:t" opt
+while getopts ":w:i:d:v:b:t:" opt
     do 
         case $opt in
             w) echo $OPTARG; WORKLOAD=$OPTARG;;
-            t) echo $OPTARG; TEMP_SIZES+=$OPTARG;;
+            t) echo $OPTARG; TEMP_SIZES+= ("$OPTARG");;
             i) echo $OPTARG; INTERVAL=$OPTARG;;
             d) echo $OPTARG; DURATION=$OPTARG;;
             v) echo $OPTARG; DEV_TYPE=$OPTARG;;
