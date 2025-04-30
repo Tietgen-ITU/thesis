@@ -152,7 +152,7 @@ INTERVAL=0
 DURATION=0
 DEV_TYPE=""
 BACKEND=""
-while getopts ":w:i:d:t" opt
+while getopts ":w:i:d:v:b:t" opt
     do 
         case $opt in
             w) echo $OPTARG; WORKLOAD=$OPTARG;;
