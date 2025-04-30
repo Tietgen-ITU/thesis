@@ -156,7 +156,7 @@ while getopts ":w:i:d:v:b:t:" opt
     do 
         case $opt in
             w) echo $OPTARG; WORKLOAD=$OPTARG;;
-            t) echo $OPTARG; TEMP_SIZES+= ("$OPTARG");;
+            t) echo $OPTARG; TEMP_SIZES+=("$OPTARG");;
             i) echo $OPTARG; INTERVAL=$OPTARG;;
             d) echo $OPTARG; DURATION=$OPTARG;;
             v) echo $OPTARG; DEV_TYPE=$OPTARG;;
