@@ -135,14 +135,15 @@ run_workload() {
         fi
 
         python3 "$FIO_BENCH_DIR/gen_fio.py" --workload database --device $L_DEVICE -be $6 --out_dir $OUTDIR -bs 256ki --timebased -d 10800 -pcts $2 -ft 3       
-        #setup_device_fdp_disabled
-        #python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/no_fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/no_fdp.fio" --output="$OUTDIR/no_fdp_result.txt" --output-format="json"
-        #setup_device_fdp_enabled
-        #python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/fdp.fio" --output="$OUTDIR/fdp_result.txt" --output-format="json"
-        #setup_device_fdp_disabled
-        #python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/xnvme_no_fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/xnvme_no_fdp.fio" --output="$OUTDIR/xnvme_no_fdp_result.txt" --output-format="json"
-        #setup_device_fdp_enabled
-        #python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/xnvme_fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/xnvme_fdp.fio" --output="$OUTDIR/xnvme_fdp_result.txt" --output-format="json"
+        
+        setup_device_fdp_disabled
+        python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/no_fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/no_fdp.fio" --output="$OUTDIR/no_fdp_result.txt" --output-format="json"
+        setup_device_fdp_enabled
+        python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/fdp.fio" --output="$OUTDIR/fdp_result.txt" --output-format="json"
+        setup_device_fdp_disabled
+        python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/xnvme_no_fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/xnvme_no_fdp.fio" --output="$OUTDIR/xnvme_no_fdp_result.txt" --output-format="json"
+        setup_device_fdp_enabled
+        python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/xnvme_fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/xnvme_fdp.fio" --output="$OUTDIR/xnvme_fdp_result.txt" --output-format="json"
     fi
 }
 
