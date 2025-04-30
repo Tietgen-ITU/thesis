@@ -174,13 +174,15 @@ def start_device_measurements(device: NvmeDevice, file_name: str):
     """
 
     def run(device: NvmeDevice, file: str):
+        os.system("sync")
         previous_host_written, previous_media_written = device.get_written_bytes_nsid(1)
         global RUN_MEASUREMENT
 
         waf_file = open(file, "w+", newline="\n")
 
         while RUN_MEASUREMENT:
-            time.sleep(30)
+            time.sleep(600)
+            os.system("sync")
             host_written, media_written = device.get_written_bytes_nsid(1)
             if host_written == 0:
                 continue
