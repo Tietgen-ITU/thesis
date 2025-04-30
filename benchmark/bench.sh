@@ -126,17 +126,15 @@ run_workload() {
     local L_DEVICE=$DEVICE_NS
     
     if [[ "$1" == "database" ]]; then
-        OUTDIR="$DB_WORKLOAD_DIR/$DATE/TEMP_$3"
+        OUTDIR="$DB_WORKLOAD_DIR/$DATE/$6_TEMP_$2"
 
         if [[ $5 == "generic" ]]; then
             L_DEVICE=$DEVICE_NG
         elif [[ $5 == "pci" ]]; then
             L_DEVICE=$DEVICE_URI
         fi
-        echo "interval and duration"
-        echo $4
-        echo $(( $3 / $4 ))
-        python3 "$FIO_BENCH_DIR/gen-fio.py" --workload database --device $L_DEVICE -be $6 --out_dir $OUTDIR -bs 256ki --timebased -d 10800 -pcts $2 -ft 3 
+
+        python3 "$FIO_BENCH_DIR/gen-fio.py" --workload database --device $L_DEVICE -be $6 --out_dir $OUTDIR -bs 256ki --timebased -d 10800 -pcts $2 -ft 3       
         #setup_device_fdp_disabled
         #python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/no_fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/no_fdp.fio" --output="$OUTDIR/no_fdp_result.txt" --output-format="json"
         #setup_device_fdp_enabled
@@ -161,7 +159,7 @@ while getopts ":w:i:d:t" opt
             t) echo $OPTARG; TEMP_SIZES+=$OPTARG;;
             i) echo $OPTARG; INTERVAL=$OPTARG;;
             d) echo $OPTARG; DURATION=$OPTARG;;
-            dt) echo $OPTARG; DEV_TYPE=$OPTARG;;
+            v) echo $OPTARG; DEV_TYPE=$OPTARG;;
             b) echo $OPTARG; BACKEND=$OPTARG;;
         esac
 done
