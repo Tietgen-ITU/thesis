@@ -187,7 +187,7 @@ class NvmeDevice:
         self.namespaces.append(new_namespace)
 
         if is_mounted:
-            os.system(f"mkfs.ext4 {new_namespace.get_device_path()} {self.block_size}") # Format the device namespace
+            os.system(f"mkfs.ext4 {new_namespace.get_device_path()} -b {self.block_size} {ns_number_of_blocks}") # Format the device namespace
             result = os.system(f"mount {new_namespace.get_device_path()} {mount_path}") # Mount the device namespace to a mount path
 
             if result != 0:
