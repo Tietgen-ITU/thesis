@@ -1,5 +1,5 @@
 #!/bin/bash
-DURATION=5
+DURATION=60
 DEVICE="/dev/nvme1"
 INPUT_DIR="/home/pinar"
 MOUNT="/mnt/itu/duckdb"
