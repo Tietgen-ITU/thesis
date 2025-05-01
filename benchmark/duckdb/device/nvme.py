@@ -179,7 +179,6 @@ class NvmeDevice:
 
         # Attach the namespace to the device
         result = os.system(f"nvme attach-ns {device_path} --namespace-id={namespace_id} --controllers=0x7")
-        result = os.system(f"nvme attach-ns {device_path} --namespace-id={namespace_id} --controllers=0x7")
         cmd = f"nvme list --output-format=json | jq -r '.Devices[] | select(.NameSpace == {namespace_id}) | .DevicePath' | grep '{device_path}'"
         ns_path = subprocess.check_output(cmd, shell=True).decode("utf-8")
         ns_id = int(ns_path[-2])
