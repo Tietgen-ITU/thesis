@@ -178,12 +178,15 @@ class NvmeDevice:
 
         # Attach the namespace to the device
         result = os.system(f"nvme attach-ns {device_path} --namespace-id={namespace_id} --controllers=0x7")
+        ns_path = subprocess.check_output(f"nvme list --output-format=json | jq -r '.Devices[] | select(.NameSpace == {namespace_id}) | .DevicePath' | grep '{device_path}'", shell=True)
+        ns_id = int(ns_path[-1])
+
 
         if result != 0:
             raise Exception("Failed to attach namespace")
         
         is_mounted = mount_path is not None
-        new_namespace = NvmeDeviceNamespace(device_path, namespace_id, ns_number_of_blocks, self.log_id, self.sent_offset, self.written_offset, is_mounted)
+        new_namespace = NvmeDeviceNamespace(device_path, ns_id, ns_number_of_blocks, self.log_id, self.sent_offset, self.written_offset, is_mounted)
         self.namespaces.append(new_namespace)
 
         if is_mounted:
