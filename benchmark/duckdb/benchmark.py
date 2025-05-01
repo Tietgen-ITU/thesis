@@ -20,6 +20,7 @@ class Arguments:
     use_generic_device: bool = False
     benchmark: str = ""
     mount_path: str = None
+    input_dir: str = "./"
 
     def valid(self) -> bool:
         print(self)
@@ -102,6 +103,14 @@ class Arguments:
             default=None
         )
 
+        parser.add_argument(
+            "-i",
+            "--input_directory",
+            type=str,
+            help="Input directory to use for the benchmark. That is the place where data files are stored and can data can be loaded from",
+            default="./"
+        )
+
         args = parser.parse_args()
         
         arguments: Arguments = Arguments(
@@ -113,7 +122,8 @@ class Arguments:
             use_fdp=args.fdp,
             use_generic_device=args.generic_device,
             benchmark=args.benchmark,
-            mount_path=args.mount_path
+            mount_path=args.mount_path,
+            input_dir=args.input_directory
         )
 
         if not arguments.valid():
@@ -122,14 +132,14 @@ class Arguments:
         
         return arguments
 
-type SetupFunc = Callable[[int], duckdb.Database]
+type SetupFunc = Callable[[], duckdb.Database]
 def prepare_setup_func(args: Arguments) -> SetupFunc:
     """
     Prepare the database configuration and database extensions that are needed depending on the storage device
     """
 
     device = NvmeDevice(args.device)
-    def setup_nvme(buffer_manager_size: int):
+    def setup_nvme():
         device_namespace = setup_device(device, enable_fdp=args.use_fdp)
         device_path = device_namespace.get_generic_device_path() if args.use_generic_device else device_namespace.get_device_path()
 
@@ -140,17 +150,18 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
             device_path, 
             args.io_backend, 
             args.use_fdp)
+        duckdb.connect("nvmefs:///bench.db", config) # To set secrets first # TODO: Change this in the NvmeDatabase
+
         db = duckdb.connect("nvmefs:///bench.db", config)
-        db.query(f"SET memory_limit='{buffer_manager_size}MB';")
-        db.query("PRAGMA disable_object_cache;")
 
         return db, device
     
-    def setup_normal(buffer_manager_size: int):
+    def setup_normal():
 
-        db: duckdb.Database = duckdb.connect("bench.db")
-        db.query(f"SET memory_limit='{buffer_manager_size}MB';")
-        db.query("PRAGMA disable_object_cache;")
+        normal_db_path = os.path.join(args.mount_path, "bench.db")
+
+        setup_device(device, mount_path=args.mount_path)
+        db: duckdb.Database = duckdb.connect(normal_db_path)
 
         return db, device
 
@@ -163,6 +174,7 @@ def start_device_measurements(device: NvmeDevice, file_name: str):
     """
 
     def run(device: NvmeDevice, file: str):
+        os.system("sync")
         previous_host_written, previous_media_written = device.get_written_bytes_nsid(1)
         global RUN_MEASUREMENT
 
@@ -170,6 +182,7 @@ def start_device_measurements(device: NvmeDevice, file_name: str):
 
         while RUN_MEASUREMENT:
             time.sleep(600)
+            os.system("sync")
             host_written, media_written = device.get_written_bytes_nsid(1)
             if host_written == 0:
                 continue
@@ -202,23 +215,23 @@ def start_device_measurements(device: NvmeDevice, file_name: str):
 
     return stop_measurement
 
-
 if __name__ == "__main__":
 
     args: Arguments = Arguments.parse_args()
     setup_device_and_db = prepare_setup_func(args)
 
     fdp_name = "fdp" if args.use_fdp else "nofdp"
-    name = f"duckdb-bench-{args.io_backend}-{args.scale_factor}-{fdp_name}" 
+    device_name = "nvme" if args.mount_path is None else "normal"
+    name = f"duckdb-{args.benchmark}-{device_name}-mem{args.buffer_manager_mem_size}-{args.io_backend}-sf{args.scale_factor}-{fdp_name}" 
     device_output_file = f"{name}-device.csv"
     output_file = f"{name}.csv"
 
     run_benchmark, setup_benchmark = create_benchmark_runner(args.benchmark)
 
     # Setup the database with the correct device config
-    db, device = setup_device_and_db(args.buffer_manager_mem_size)
+    db, device = setup_device_and_db()
 
-    setup_benchmark(db)
+    setup_benchmark(db, args.input_dir, args.buffer_manager_mem_size, args.scale_factor)
 
     # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
     stop_measurement = start_device_measurements(device, device_output_file)
@@ -226,6 +239,7 @@ if __name__ == "__main__":
     stop_measurement()
     
     # Write the metric results to a CSV file
+    print(metric_results)
 
     with open(output_file, mode="w", newline="\n") as file:
         # Write the rows
