@@ -1,4 +1,4 @@
 #!/bin/bash
-SESSION="experiment"
-tmux new-session -d -s $SESSION
-tmux send-keys -t $SESSION.0 'exec sh ./bench.sh' ENTER
+
+# Run the database workload for 3 hours, query waf every 10 min for each temporary size, so (3 * 4 * 4) hours
+sh bench.sh -w database -i  -d 10800 -v generic -b io_uring_cmd -t 5 -t 10 -t 25 -t 50
