@@ -10,7 +10,9 @@ BLOCK_SIZE=4096
 
 # Path
 COMMANDS_DIR=/home/pinar/.local
-BENCHMARK_OUT_DIR=/home/pinar/thesis/benchmark
+BENCHMARK_DIR=/home/pinar/thesis/benchmark
+DB_WORKLOAD_DIR=/home/pinar/thesis/benchmark/fio/db_workload
+FIO_BENCH_DIR=/home/pinar/thesis/benchmark/fio
 
 # Commands
 NVME=$COMMANDS_DIR/nvme-cli/.build/nvme
@@ -111,14 +113,59 @@ setup_device_fdp_enabled() {
     echo "___________________________"
 }
 
-# IO_URING_CMD
-setup_device_fdp_disabled 80
-python3 waf.py "no_fdp.txt" & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./no_fdp.fio --output="./no_fdp_results.txt" --output-format="json"
-setup_device_fdp_enabled 80
-python3 waf.py "fdp.txt" & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./fdp.fio --output="./fdp_results.txt" --output-format="json"
+# Takes 5 arguments: 
+# - 1. workload - string that specifies workload
+# - 2. temp size - int that specifies the percentage size of temporary storage 
+# - 3. duration - duration of experiment in seconds (default 1 hour)
+# - 4. interval - the interval in which measurements should be taken (default 10 min)
+# - 5. device type - the type of device going to be used
+# - 6. backend - io backend to be used
+run_workload() {
+    local var DATE=$(date +"%d_%m_%y")
+    local var OUTDIR=""
+    local L_DEVICE=$DEVICE_NS
+    
+    if [[ "$1" == "database" ]]; then
+        OUTDIR="$DB_WORKLOAD_DIR/$DATE/$6_TEMP_$2"
 
-# xNVMe IO_URING_CMD
-setup_device_fdp_disabled 80
-python3 waf.py "xnvme_no_fdp.txt" & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./xnvme_no_fdp.fio --output="./xnvme_no_fdp_results.txt" --output-format="json"
-setup_device_fdp_enabled 80
-python3 waf.py "xnvme_fdp.txt" & IODEPTH=4 BS=4k THREADS=2 DEVICE=$DEVICE_NG $FIO ./xnvme_fdp.fio --output="./xnvme_fdp_results.txt" --output-format="json"
+        if [[ $5 == "generic" ]]; then
+            L_DEVICE=$DEVICE_NG
+        elif [[ $5 == "pci" ]]; then
+            L_DEVICE=$DEVICE_URI
+        fi
+
+        python3 "$FIO_BENCH_DIR/gen_fio.py" --workload database --device $L_DEVICE -be $6 --out_dir $OUTDIR -bs 256ki --timebased -d 10800 -pcts $2 -ft 3       
+        
+        setup_device_fdp_disabled
+        python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/no_fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/no_fdp.fio" --output="$OUTDIR/no_fdp_result.txt" --output-format="json"
+        setup_device_fdp_enabled
+        python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/fdp.fio" --output="$OUTDIR/fdp_result.txt" --output-format="json"
+        setup_device_fdp_disabled
+        python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/xnvme_no_fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/xnvme_no_fdp.fio" --output="$OUTDIR/xnvme_no_fdp_result.txt" --output-format="json"
+        setup_device_fdp_enabled
+        python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/xnvme_fdp.txt" $4 $(( $3 / $4 )) & $FIO "$OUTDIR/xnvme_fdp.fio" --output="$OUTDIR/xnvme_fdp_result.txt" --output-format="json"
+    fi
+}
+
+WORKLOAD="database"
+TEMP_SIZES=()
+INTERVAL=0
+DURATION=0
+DEV_TYPE=""
+BACKEND=""
+while getopts ":w:i:d:v:b:t:" opt
+    do 
+        case $opt in
+            w) echo $OPTARG; WORKLOAD=$OPTARG;;
+            t) echo $OPTARG; TEMP_SIZES+=("$OPTARG");;
+            i) echo $OPTARG; INTERVAL=$OPTARG;;
+            d) echo $OPTARG; DURATION=$OPTARG;;
+            v) echo $OPTARG; DEV_TYPE=$OPTARG;;
+            b) echo $OPTARG; BACKEND=$OPTARG;;
+        esac
+done
+
+for tsize in "${TEMP_SIZES[@]}"
+do
+    run_workload $WORKLOAD $tsize $DURATION $INTERVAL $DEV_TYPE $BACKEND
+done
