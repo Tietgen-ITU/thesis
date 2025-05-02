@@ -166,10 +166,9 @@ bs={args.block_size}
 numjobs={args.threads}
 group_reporting
 norandommap=1
-"""
-        if args.backend=="spdk":
-            sec_global += "thread=1\n"
+"""         
         if "xnvme" in filename:
+            sec_global += "thread=1\n"
             sec_global += "ioengine=xnvme\n"
             if args.backend == "spdk":
                 sec_global += f"xnvme_be={args.backend}\n"
