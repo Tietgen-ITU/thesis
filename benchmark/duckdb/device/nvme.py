@@ -5,9 +5,10 @@ import subprocess
 from pathlib import Path
 
 class NvmeDeviceNamespace:
-    def __init__(self, device_path: str, namespace_id: int, number_of_blocks: int, log_id: str, sent_offset: list[int], written_offset:list[int], is_mounted: bool = False):
+    def __init__(self, device_path: str, dev_path_id: int, namespace_id: int, number_of_blocks: int, log_id: str, sent_offset: list[int], written_offset:list[int], is_mounted: bool = False):
         self.base_device_path = device_path
         self.namespace_id = namespace_id
+        self.dev_path_id = dev_path_id
         self.is_mounted = is_mounted
         self.block_size = 4096
         self.device_id = int(device_path[-1])
@@ -39,13 +40,13 @@ class NvmeDeviceNamespace:
         """
         Returns the generic device path for the namespace
         """
-        return f"/dev/ng{self.device_id}n{self.namespace_id}"
+        return f"/dev/ng{self.device_id}n{self.dev_path_id}"
     
     def get_device_path(self):
         """
         Returns the device path for the namespace
         """
-        return f"/dev/nvme{self.device_id}n{self.namespace_id}"
+        return f"/dev/nvme{self.device_id}n{self.dev_path_id}"
     
 
     def get_written_bytes(self):
@@ -178,12 +179,15 @@ class NvmeDevice:
 
         # Attach the namespace to the device
         result = os.system(f"nvme attach-ns {device_path} --namespace-id={namespace_id} --controllers=0x7")
+        cmd = f"nvme list --output-format=json | jq -r '.Devices[] | select(.NameSpace == {namespace_id}) | .DevicePath' | grep '{device_path}'"
+        ns_path = subprocess.check_output(cmd, shell=True).decode("utf-8")
+        ns_id = int(ns_path[-2])
 
         if result != 0:
             raise Exception("Failed to attach namespace")
         
         is_mounted = mount_path is not None
-        new_namespace = NvmeDeviceNamespace(device_path, namespace_id, ns_number_of_blocks, self.log_id, self.sent_offset, self.written_offset, is_mounted)
+        new_namespace = NvmeDeviceNamespace(device_path, ns_id, namespace_id, ns_number_of_blocks, self.log_id, self.sent_offset, self.written_offset, is_mounted)
         self.namespaces.append(new_namespace)
 
         if is_mounted:
