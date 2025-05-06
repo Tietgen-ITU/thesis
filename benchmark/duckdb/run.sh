@@ -1,5 +1,5 @@
 #!/bin/bash
-DURATION=180
+DURATION=240
 READ_DURATION=30
 DEVICE="/dev/nvme1"
 INPUT_DIR="/home/pinar"
