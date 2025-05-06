@@ -247,10 +247,10 @@ def setup_device(device: NvmeDevice, namespace_id:int = 1, enable_fdp: bool = Fa
         device.delete_namespace_nsid(namespace_id)
     
     # Ensure that FDP is enabled / disabled
-    if enable_fdp:
-        device.enable_fdp()
-    else:
-        device.disable_fdp()
+    # if enable_fdp:
+    #     device.enable_fdp()
+    # else:
+    #     device.disable_fdp()
     
     # Create new namespace with a new configuration
     return device.create_namespace(device.base_device_path, namespace_id, enable_fdp, mount_path=mount_path, size=size)
