@@ -169,8 +169,9 @@ class NvmeDevice:
         result = 1
         ns_number_of_blocks = int(self.number_of_blocks*size)
         
+        print(f"Creating namespace {namespace_id} with {ns_number_of_blocks} blocks")
         if enable_fdp:
-            result = os.system(f"nvme create-ns {device_path} -b {self.block_size} --nsze={ns_number_of_blocks} --ncap={ns_number_of_blocks} --nphndls=7 --phndls=0,1,2,3,4,5,6")
+            result = os.system(f"nvme create-ns {device_path} -b {self.block_size} --nsze={ns_number_of_blocks} --ncap={ns_number_of_blocks} --nphndls=6 --phndls=0,1,2,3,4,5")
         else: 
             result = os.system(f"nvme create-ns {device_path} -b {self.block_size} --nsze={ns_number_of_blocks} --ncap={ns_number_of_blocks}")
 

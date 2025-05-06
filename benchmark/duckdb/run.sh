@@ -16,7 +16,7 @@ precondition_device_fdp() {
 
     nvme set-feature $DEVICE_PATH -f 0x1D -c 1 -s
 
-    nvme create-ns $DEVICE_PATH -b 4096 --nsze=$SIZE --ncap=$SIZE
+    nvme create-ns $DEVICE_PATH -b 4096 --nsze=$SIZE --ncap=$SIZE --nphndls=1 --phndls=6
     nvme attach-ns $DEVICE_PATH --namespace-id=1 --controllers=0x7
 
     /home/pinar/.local/fio/fio --filename=/dev/ng1n1 --size="100%" --name fillDevice --rw=write --numjobs=1 --ioengine=io_uring_cmd --iodepth=64 --bs=256k
