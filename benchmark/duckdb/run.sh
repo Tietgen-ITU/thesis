@@ -5,8 +5,10 @@ DEVICE="/dev/nvme1"
 INPUT_DIR="/home/pinar"
 MOUNT="/mnt/itu/duckdb"
 
+
+
 M_SIZE_DEVICE=91814953 # ~376GB, 10% of device
-M_SIZE_PRECONDITION=826334573 # ~3,38TB, 90% of device
+M_SIZE_PRECONDITION=826334568 # ~3,38TB, 90% of device
 L_SIZE_DEVICE=156085420 # ~639GB, 17% of device
 L_SIZE_PRECONDITION=762064106 # ~3,12TB, 83% of device
 
