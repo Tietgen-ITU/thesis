@@ -19,7 +19,7 @@ precondition_device_fdp() {
     nvme create-ns $DEVICE_PATH -b 4096 --nsze=$SIZE --ncap=$SIZE --nphndls=1 --phndls=6
     nvme attach-ns $DEVICE_PATH --namespace-id=1 --controllers=0x7
 
-    /home/pinar/.local/fio/fio --filename=/dev/ng1n1 --size="100%" --name fillDevice --rw=write --numjobs=1 --ioengine=io_uring_cmd --iodepth=64 --bs=256k
+    #/home/pinar/.local/fio/fio --filename=/dev/ng1n1 --size="100%" --name fillDevice --rw=write --numjobs=1 --ioengine=io_uring_cmd --iodepth=64 --bs=256k
 }
 
 precondition_device() {
@@ -31,7 +31,7 @@ precondition_device() {
     nvme create-ns $DEVICE_PATH -b 4096 --nsze=$SIZE --ncap=$SIZE
     nvme attach-ns $DEVICE_PATH --namespace-id=1 --controllers=0x7
 
-    /home/pinar/.local/fio/fio --filename=/dev/ng1n1 --size="100%" --name fillDevice --rw=write --numjobs=1 --ioengine=io_uring_cmd --iodepth=64 --bs=256k
+    #/home/pinar/.local/fio/fio --filename=/dev/ng1n1 --size="100%" --name fillDevice --rw=write --numjobs=1 --ioengine=io_uring_cmd --iodepth=64 --bs=256k
 }
 
 remove_precondition_device() {
