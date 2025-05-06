@@ -140,7 +140,7 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
 
     device = NvmeDevice(args.device)
     def setup_nvme():
-        device_namespace = setup_device(device, enable_fdp=args.use_fdp)
+        device_namespace = setup_device(device, namespace_id=2, enable_fdp=args.use_fdp)
         device_path = device_namespace.get_generic_device_path() if args.use_generic_device else device_namespace.get_device_path()
 
         print(f"Using device path: {device_path}")
@@ -160,7 +160,7 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
 
         normal_db_path = os.path.join(args.mount_path, "bench.db")
 
-        setup_device(device, mount_path=args.mount_path)
+        setup_device(device, namespace_id=2, mount_path=args.mount_path)
         db: duckdb.Database = duckdb.connect(normal_db_path)
 
         return db, device
