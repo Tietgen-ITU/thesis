@@ -21,15 +21,16 @@ def run_tpch_epoch_benchmark(db: Database):
 
     results: list[str] = []
 
-    for query_nr in range(1, 22):
-        start = time.perf_counter()
-        print(f"Running TPCH query {query_nr}...")
-        db.query(f"PRAGMA tpch({query_nr});")
-        end = time.perf_counter()
+    query_nr = 9
+    # for query_nr in range(1, 22):
+    start = time.perf_counter()
+    print(f"Running TPCH query {query_nr}...")
+    db.query(f"PRAGMA tpch({query_nr});")
+    end = time.perf_counter()
 
-        # Get query elapsed time in milliseconds
-        query_elapsed = (end - start) * 1000
+    # Get query elapsed time in milliseconds
+    query_elapsed = (end - start) * 1000
 
-        results.append(f"{query_nr};{query_elapsed}\n")
+    results.append(f"{query_nr};{query_elapsed}\n")
 
     return results
