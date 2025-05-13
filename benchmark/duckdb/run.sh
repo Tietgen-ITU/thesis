@@ -11,7 +11,7 @@ source ./init.sh
 # Run benchmarks with enough main memory to not make it spill to disk
 python3 benchmark.py -d $READ_DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 50000 tpch
 python3 benchmark.py -d $READ_DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 50000 --fdp tpch
-python3 benchmark.py -d $DURATION --mount_path $MOUNT --device_path $DEVICE --input_directory $INPUT_DIR -m 50000 tpch
+python3 benchmark.py -d $READ_DURATION --mount_path $MOUNT --device_path $DEVICE --input_directory $INPUT_DIR -m 50000 tpch
 
 # Run the benchmark with the generic device, io_uring_cmd, and fdp
 python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 75 tpch
