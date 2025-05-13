@@ -79,14 +79,19 @@ class NvmeDevice:
         if self.log_id is None :
             raise Exception("Environment variable LOGIDWAF")
 
-        self.number_of_blocks = self.__get_device_info(device_path)
+        self.number_of_blocks, self.unallocated_number_of_blocks = self.__get_device_info(device_path)
     
     def __get_device_info(self, device_path: str):
-        command = f"nvme id-ctrl {device_path} | grep 'tnvmcap' | sed 's/,//g' | awk -v BS={self.block_size} '{{print $3/BS}}'"
-        block_output = subprocess.check_output(command, shell=True)
-        number_of_blocks = int(block_output)
+        total_blocks_command = f"nvme id-ctrl {device_path} | grep 'tnvmcap' | sed 's/,//g' | awk -v BS={self.block_size} '{{print $3/BS}}'"
+        unallocated_blocks_command = f"nvme id-ctrl {device_path} | grep 'unvmcap' | sed 's/,//g' | awk -v BS={self.block_size} '{{print $3/BS}}'"
 
-        return number_of_blocks
+        block_output = subprocess.check_output(total_blocks_command, shell=True)
+        unallocated_block_output = subprocess.check_output(unallocated_blocks_command, shell=True)
+
+        number_of_blocks = int(block_output)
+        unallocated_number_of_blocks = int(unallocated_block_output)
+
+        return number_of_blocks, unallocated_number_of_blocks
     
     def get_ns_block_amount(self, namespace_id: int):
         """
@@ -167,7 +172,7 @@ class NvmeDevice:
 
         # Create a namespace on the device
         result = 1
-        ns_number_of_blocks = int(self.number_of_blocks*size)
+        ns_number_of_blocks = self.unallocated_number_of_blocks
         
         print(f"Creating namespace {namespace_id} with {ns_number_of_blocks} blocks")
         if enable_fdp:
