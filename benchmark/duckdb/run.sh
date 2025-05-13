@@ -7,8 +7,6 @@ MOUNT="/mnt/itu/duckdb"
 
 #Max device blocks 91814953
 
-#826334573
-
 M_SIZE_DEVICE=91803153 # ~376GB, 10% of device
 M_SIZE_PRECONDITION=826334568 # ~3,38TB, 90% of device
 L_SIZE_DEVICE=156085420 # ~639GB, 17% of device
