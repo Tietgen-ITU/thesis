@@ -160,7 +160,7 @@ class NvmeDevice:
         
         os.system(f"nvme delete-ns {self.base_device_path} --namespace-id={namespace_id}")
 
-    def create_namespace(self, device_path: str, namespace_id: int, enable_fdp: bool = False, size: float = 1.0, mount_path:str = None):
+    def create_namespace(self, device_path: str, namespace_id: int, enable_fdp: bool = False, mount_path:str = None):
         """
         Creates a namespace on the device and attaches it
 
@@ -240,7 +240,7 @@ def calculate_waf(host_written_bytes, media_written_bytes):
 
     return media_written_bytes / host_written_bytes
 
-def setup_device(device: NvmeDevice, namespace_id:int = 1, enable_fdp: bool = False, mount_path: str = None, size: float = 0.1) -> NvmeDeviceNamespace:
+def setup_device(device: NvmeDevice, namespace_id:int = 1, enable_fdp: bool = False, mount_path: str = None) -> NvmeDeviceNamespace:
     """
     Sets up the device by creating a namespace and enabling FDP if required
     """
