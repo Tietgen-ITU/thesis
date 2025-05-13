@@ -15,7 +15,6 @@ def setup_tpch_benchmark(db: Database, input_dir_path: str, buffer_manager_size:
     db.query(f"SET memory_limit='{buffer_manager_size}MB';")
     db.query("SET threads=1;")
     db.query("PRAGMA disable_object_cache;")
-    # db.query("CALL dbgen(sf=1);")
 
 def run_tpch_epoch_benchmark(db: Database):
 
