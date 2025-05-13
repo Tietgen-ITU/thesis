@@ -56,6 +56,10 @@ def generate_query(grouping, wide):
 
 
 def main():
+
+    if not os.path.exists(OOCHA_DIR):
+        os.mkdir(OOCHA_DIR)
+
     if not os.path.exists(QUERIES_DIR):
         os.mkdir(QUERIES_DIR)
 
