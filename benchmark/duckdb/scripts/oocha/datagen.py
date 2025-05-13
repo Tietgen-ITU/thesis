@@ -20,8 +20,8 @@ def generate_data(scale_factor: int, output_dir: str):
 
     # Create a new DuckDB database
     con = duckdb.connect()
-    con.execute(f"ATTACH DATABASE '{temp_db}' AS temp (READ_WRITE);")
-    con.execute("USE temp;")
+    con.execute(f"ATTACH DATABASE '{temp_db}' AS tempdatagen (READ_WRITE);")
+    con.execute("USE tempdatagen;")
 
     con.install_extension("tpch")
     con.load_extension("tpch")
@@ -34,7 +34,7 @@ def generate_data(scale_factor: int, output_dir: str):
 
     # Save the generated data to the output directory
     con.execute(f"ATTACH DATABASE '{output_file}' AS oocha (READ_WRITE);")
-    con.execute("COPY lineitem FROM DATABASE temp TO oocha;")
+    con.execute("COPY lineitem FROM DATABASE tempdatagen TO oocha;")
 
     # Close the connection
     con.close()
