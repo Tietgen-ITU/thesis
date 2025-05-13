@@ -3,15 +3,15 @@
 DEVICE=$1
 NS_ID=$2
 
-BLOCK_SIZE=4096
+BLOCK_SIZE=512
 
 
 # Creates a namespace with ~2TB of space
-nvme create-ns nvme create-ns $DEVICE -b $BLOCK_SIZE --nsze=500170752 --ncap=500170752
-nvme attach-ns $DEVICE --namespace-id=$NS_ID --controllers=0x7
+nvme create-ns $DEVICE -b $BLOCK_SIZE --nsze=1640766128 --ncap=1640766128
+nvme attach-ns $DEVICE --namespace-id=$NS_ID --controllers=0
 
 # Format the namespace with a filesystem
-mkfs.ext4 -b $BLOCK_SIZE -b $BLOCK_SIZE "${DEVICE}n${NS_ID}"
+mkfs.ext4 -b $BLOCK_SIZE "${DEVICE}n${NS_ID}"
 
 if [ ! -d "/mnt/duckdb" ]; then
     mkdir -p /mnt/duckdb
@@ -40,5 +40,5 @@ wget https://blobs.duckdb.org/data/tpch-sf300.db
 echo "Fetching tpch data sf1000"
 wget https://blobs.duckdb.org/data/tpch-sf1000.db
 
-echo "Fetching tpch data sf3000"
-wget https://blobs.duckdb.org/data/tpch-sf3000.db
+# echo "Fetching tpch data sf3000"
+# wget https://blobs.duckdb.org/data/tpch-sf3000.db
