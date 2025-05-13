@@ -1,5 +1,5 @@
 import time
-from . import benchmark_types, tpch
+from . import benchmark_types, tpch, oocha
 
 
 def create_benchmark_runner(name: str) -> tuple[benchmark_types.BenchmarkRunnerFunc, benchmark_types.BenchmarkSetupFunc]:
