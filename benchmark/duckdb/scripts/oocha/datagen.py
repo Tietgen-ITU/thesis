@@ -3,7 +3,7 @@ import os
 import duckdb
 
 temp_db = "temp.db"
-scaling_factors = [1, 2, 4, 8, 16, 32, 64, 128]
+scaling_factors = [2, 8, 32, 128]
 
 def generate_data(scale_factor: int, output_dir: str):
     """
