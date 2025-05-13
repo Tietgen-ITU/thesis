@@ -79,14 +79,19 @@ class NvmeDevice:
         if self.log_id is None :
             raise Exception("Environment variable LOGIDWAF")
 
-        self.number_of_blocks = self.__get_device_info(device_path)
+        self.number_of_blocks, self.unallocated_number_of_blocks = self.__get_device_info(device_path)
     
     def __get_device_info(self, device_path: str):
-        command = f"nvme id-ctrl {device_path} | grep 'tnvmcap' | sed 's/,//g' | awk -v BS={self.block_size} '{{print $3/BS}}'"
-        block_output = subprocess.check_output(command, shell=True)
-        number_of_blocks = int(block_output)
+        total_blocks_command = f"nvme id-ctrl {device_path} | grep 'tnvmcap' | sed 's/,//g' | awk -v BS={self.block_size} '{{print $3/BS}}'"
+        unallocated_blocks_command = f"nvme id-ctrl {device_path} | grep 'unvmcap' | sed 's/,//g' | awk -v BS={self.block_size} '{{print $3/BS}}'"
 
-        return number_of_blocks
+        block_output = subprocess.check_output(total_blocks_command, shell=True)
+        unallocated_block_output = subprocess.check_output(unallocated_blocks_command, shell=True)
+
+        number_of_blocks = int(block_output)
+        unallocated_number_of_blocks = int(unallocated_block_output)
+
+        return number_of_blocks, unallocated_number_of_blocks
     
     def get_ns_block_amount(self, namespace_id: int):
         """
@@ -155,7 +160,7 @@ class NvmeDevice:
         
         os.system(f"nvme delete-ns {self.base_device_path} --namespace-id={namespace_id}")
 
-    def create_namespace(self, device_path: str, namespace_id: int, enable_fdp: bool = False, size: float = 1.0, mount_path:str = None):
+    def create_namespace(self, device_path: str, namespace_id: int, enable_fdp: bool = False, mount_path:str = None):
         """
         Creates a namespace on the device and attaches it
 
@@ -167,10 +172,11 @@ class NvmeDevice:
 
         # Create a namespace on the device
         result = 1
-        ns_number_of_blocks = int(self.number_of_blocks*size)
+        ns_number_of_blocks = self.unallocated_number_of_blocks
         
+        print(f"Creating namespace {namespace_id} with {ns_number_of_blocks} blocks")
         if enable_fdp:
-            result = os.system(f"nvme create-ns {device_path} -b {self.block_size} --nsze={ns_number_of_blocks} --ncap={ns_number_of_blocks} --nphndls=7 --phndls=0,1,2,3,4,5,6")
+            result = os.system(f"nvme create-ns {device_path} -b {self.block_size} --nsze={ns_number_of_blocks} --ncap={ns_number_of_blocks} --nphndls=6 --phndls=0,1,2,3,4,5")
         else: 
             result = os.system(f"nvme create-ns {device_path} -b {self.block_size} --nsze={ns_number_of_blocks} --ncap={ns_number_of_blocks}")
 
@@ -247,10 +253,10 @@ def setup_device(device: NvmeDevice, namespace_id:int = 1, enable_fdp: bool = Fa
         device.delete_namespace_nsid(namespace_id)
     
     # Ensure that FDP is enabled / disabled
-    if enable_fdp:
-        device.enable_fdp()
-    else:
-        device.disable_fdp()
+    # if enable_fdp:
+    #     device.enable_fdp()
+    # else:
+    #     device.disable_fdp()
     
     # Create new namespace with a new configuration
-    return device.create_namespace(device.base_device_path, namespace_id, enable_fdp, mount_path=mount_path)
+    return device.create_namespace(device.base_device_path, namespace_id, enable_fdp, mount_path=mount_path, size=size)
