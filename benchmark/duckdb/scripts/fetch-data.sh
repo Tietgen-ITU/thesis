@@ -22,6 +22,10 @@ fi
 echo "Mounting ${DEVICE}n${NS_ID} to /mnt/duckdb"
 mount "${DEVICE}n${NS_ID}" /mnt/duckdb
 
+CURRENT_DIR=$(pwd)
+
+cd /mnt/duckdb
+
 echo "Fetching tpch data sf1"
 wget https://blobs.duckdb.org/data/tpch-sf1.db
 
@@ -42,3 +46,5 @@ wget https://blobs.duckdb.org/data/tpch-sf1000.db
 
 # echo "Fetching tpch data sf3000"
 # wget https://blobs.duckdb.org/data/tpch-sf3000.db
+
+cd $CURRENT_DIR
