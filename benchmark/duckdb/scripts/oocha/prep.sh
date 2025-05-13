@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ../../init.sh
+
 echo "Generate queries"
 python3 querygen.py
 
