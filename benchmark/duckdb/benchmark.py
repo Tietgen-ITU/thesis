@@ -11,7 +11,8 @@ from datetime import datetime
 
 @dataclass
 class Arguments:
-    duration: int = 1
+    duration: int = 0
+    repetitions: int = 0
     scale_factor: int = 1
     buffer_manager_mem_size: int = 50
     device: str = ""
@@ -26,6 +27,10 @@ class Arguments:
         print(self)
         if self.use_fdp and self.device is None:
             print("Device path is required")
+            return False
+
+        if (self.repetitions == 0 and self.duration == 0) or (self.repetitions != 0 and self.duration != 0):
+            print("Either duration or repetitions must be set")
             return False
         
         return True
@@ -52,7 +57,15 @@ class Arguments:
             "--duration",
             type=int,
             help="Duration in minutes to run the benchmark",
-            default=10
+            default=0
+        )
+
+        parser.add_argument(
+            "-r",
+            "--repetitions",
+            type=int,
+            help="Amount of repetitions to run the benchmark",
+            default=0
         )
 
         parser.add_argument(
@@ -115,6 +128,7 @@ class Arguments:
         
         arguments: Arguments = Arguments(
             duration=args.duration,
+            repetition=
             device=args.device_path,
             scale_factor=args.sf,
             buffer_manager_mem_size=args.memory_limit,
@@ -220,13 +234,14 @@ if __name__ == "__main__":
     args: Arguments = Arguments.parse_args()
     setup_device_and_db = prepare_setup_func(args)
 
+    run_with_duration = args.duration > 0
     fdp_name = "fdp" if args.use_fdp else "nofdp"
     device_name = "nvme" if args.mount_path is None else "normal"
     name = f"duckdb-{args.benchmark}-{device_name}-mem{args.buffer_manager_mem_size}-{args.io_backend}-sf{args.scale_factor}-{fdp_name}" 
     device_output_file = f"{name}-device.csv"
     output_file = f"{name}.csv"
 
-    run_benchmark, setup_benchmark = create_benchmark_runner(args.benchmark)
+    run_benchmark, setup_benchmark = create_benchmark_runner(args.benchmark, run_with_duration)
 
     # Setup the database with the correct device config
     db, device = setup_device_and_db()
@@ -235,7 +250,7 @@ if __name__ == "__main__":
 
     # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
     stop_measurement = start_device_measurements(device, device_output_file)
-    metric_results = run_benchmark(db, args.duration) 
+    metric_results = run_benchmark(db, args.duration if run_with_duration else args.repetitions) 
     stop_measurement()
     
     # Write the metric results to a CSV file

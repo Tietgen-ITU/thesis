@@ -2,7 +2,7 @@ import time
 from . import benchmark_types, tpch, oocha
 
 
-def create_benchmark_runner(name: str) -> tuple[benchmark_types.BenchmarkRunnerFunc, benchmark_types.BenchmarkSetupFunc]:
+def create_benchmark_runner(name: str, run_with_duration: bool) -> tuple[benchmark_types.BenchmarkRunnerFunc, benchmark_types.BenchmarkSetupFunc]:
 
     def create_runner_function(benchmark: benchmark_types.BenchmarkEpochFunc) -> benchmark_types.BenchmarkRunnerFunc:
         """
@@ -10,7 +10,7 @@ def create_benchmark_runner(name: str) -> tuple[benchmark_types.BenchmarkRunnerF
         :param benchmark: The benchmark function to run.
         :return: A function that runs the benchmark for a specified duration.
         """
-        def wrapper(db: benchmark_types.Database, duration_minutes: int) -> list[str]:
+        def duration_wrapper(db: benchmark_types.Database, duration_minutes: int) -> list[str]:
 
             def get_time():
                 # Return the current time in minutes
@@ -31,10 +31,26 @@ def create_benchmark_runner(name: str) -> tuple[benchmark_types.BenchmarkRunnerF
                 delta = get_time() - start_time
 
             return consolidated_results
+
+        def repetition_wrapper(db: benchmark_types.Database, repetitions: int) -> list[str]:
+            # Run the benchmark for a specified number of repetitions
+            consolidated_results: list[str] = []
+
+            print(f"Running benchmark '{name}' for {repetitions} repetitions...")
+
+            for _ in range(repetitions):
+                # Run the benchmark
+                results = benchmark(db)
+
+                consolidated_results.extend(results)
+
+            return consolidated_results
     
-        return wrapper
+        return duration_wrapper if run_with_duration else repetition_wrapper
 
     if name == tpch.TPCH_BENCHMARK_NAME:
         return create_runner_function(tpch.run_tpch_epoch_benchmark), tpch.setup_tpch_benchmark 
+    elif name == oocha.OOCHA_BENCHMARK_NAME:
+        return create_runner_function(oocha.run_oocha_epoch_benchmark), oocha.setup_oocha_benchmark
     
     raise ValueError(f"Unknown benchmark '{name}'")
