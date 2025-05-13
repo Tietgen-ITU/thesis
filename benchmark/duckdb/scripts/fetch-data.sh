@@ -7,11 +7,11 @@ BLOCK_SIZE=512
 
 
 # Creates a namespace with ~2TB of space
-nvme create-ns $DEVICE -b $BLOCK_SIZE --nsze=1640766128 --ncap=1640766128
+nvme create-ns $DEVICE -b 512 --nsze=1640766128 --ncap=1640766128
 nvme attach-ns $DEVICE --namespace-id=$NS_ID --controllers=0
 
 # Format the namespace with a filesystem
-mkfs.ext4 -b $BLOCK_SIZE "${DEVICE}n${NS_ID}"
+mkfs.ext4 -b 4096 "${DEVICE}n${NS_ID}"
 
 if [ ! -d "/mnt/duckdb" ]; then
     mkdir -p /mnt/duckdb
