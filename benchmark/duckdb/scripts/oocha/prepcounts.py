@@ -5,42 +5,52 @@ import duckdb
 
 BASE_DIR = f"{os.path.dirname(__file__)}/../.."
 OOCHA_DIR = f"{BASE_DIR}/runner/oocha"
+OOCHA_QUERIES_DIR = f"{OOCHA_DIR}/queries"
 
 scale_factors = [2, 8, 32, 128]
 
-def _getqueries():
-    queries_dir = "./queries"
-    thin_queries_dir = os.path.join(queries_dir, "thin")
-    wide_queries_dir = os.path.join(queries_dir, "wide")
+def _get_thin_queries():
+    thin_queries_dir = os.path.join(OOCHA_QUERIES_DIR, "thin")
     
-    wides = [False, True]
     queries = []
-    for wide in wides:
-        source_dir = wide_queries_dir if wide else thin_queries_dir
-        for file_name in os.listdir(source_dir):
-            file_path = f'{source_dir}/{file_name}'
-            with open(file_path, 'r') as f:
-                queries.append((file_name.split('.')[0], wide, f.read()))
+    source_dir = thin_queries_dir
+    for file_name in os.listdir(source_dir):
+        file_path = f'{source_dir}/{file_name}'
+        with open(file_path, 'r') as f:
+            queries.append((file_name.split('.')[0], False, f.read()))
 
     return queries
 
-def main(oocha_data_dir: str):
-    data_con = duckdb.connect(f'{SYSTEM_DIR}/data.db', read_only=True)
+def generate_counts(oocha_data_dir: str, sf: int, queries: list):
+    counts_file = f'{OOCHA_QUERIES_DIR}/counts.db'
+
+    data_con = duckdb.connect(f'{oocha_data_dir}/oocha-{sf}.db', read_only=True)
     data_con.execute("""SET preserve_insertion_order=false;""")
     data_con.execute("""SET memory_limit='20GB';""")
 
-    # get the 'thin' queries
-    queries = get_queries(thin_only=True)
+    if os.path.exists(counts_file):
+        os.remove(counts_file)
+
+    counts_con = duckdb.connect(f'{OOCHA_QUERIES_DIR}/counts.db')
+    counts_con.execute("""CREATE TABLE IF NOT EXISTS counts (grouping VARCHAR, c UBIGINT);""")
+
+    print(f'Counting SF{sf} ...')
+    for grouping, _, query in queries:
+        count = data_con.execute(f"""SELECT count(*) FROM ({query.replace('OFFSET offset', '')}) sq;""").fetchall()[0][0]
+        counts_con.execute(f"""INSERT INTO counts VALUES ('{grouping}', {count});""")
+        counts_con.execute(f"""COPY counts TO '{OOCHA_QUERIES_DIR}/counts-{sf}.csv' (DELIMITER ';', HEADER, OVERWRITE);""")
     
-    counts_con = duckdb.connect(f'{QUERIES_DIR}/counts.db')
-    counts_con.execute("""CREATE TABLE IF NOT EXISTS counts (grouping VARCHAR, sf USMALLINT, c UBIGINT);""")
+    counts_con.close()
+    data_con.close()
+    print(f'Counting SF{sf} done.')
+
+def main(oocha_data_dir: str):
+
+    # get the 'thin' queries
+    queries = _get_thin_queries()
+    
     for sf in scale_factors:
-        print(f'Counting SF{sf} ...')
-        for grouping, _, query in queries:
-            if counts_con.execute(f"""SELECT count(*) FROM counts WHERE grouping = '{grouping}' AND sf = {sf};""").fetchall()[0][0] == 0:
-                count = data_con.execute(f"""SELECT count(*) FROM ({query.replace('lineitem', f'lineitem{sf}').replace('OFFSET offset', '')}) sq;""").fetchall()[0][0]
-                counts_con.execute(f"""INSERT INTO counts VALUES ('{grouping}', {sf}, {count});""")
-        print(f'Counting SF{sf} done.')
+        generate_counts(oocha_data_dir, sf, queries)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
