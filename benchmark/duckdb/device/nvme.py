@@ -89,7 +89,7 @@ class NvmeDevice:
         unallocated_block_output = subprocess.check_output(unallocated_blocks_command, shell=True)
 
         number_of_blocks = int(block_output)
-        unallocated_number_of_blocks = int(unallocated_block_output)
+        unallocated_number_of_blocks = int(unallocated_block_output) - 713958 # Based on experience that some metadata needs allocated on the device
 
         return number_of_blocks, unallocated_number_of_blocks
     
