@@ -128,7 +128,7 @@ class Arguments:
         
         arguments: Arguments = Arguments(
             duration=args.duration,
-            repetition=
+            repetitions=args.repetitions,
             device=args.device_path,
             scale_factor=args.sf,
             buffer_manager_mem_size=args.memory_limit,
