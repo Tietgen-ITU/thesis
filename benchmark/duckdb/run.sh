@@ -2,7 +2,7 @@
 DURATION=240
 READ_DURATION=30
 DEVICE="/dev/nvme1"
-INPUT_DIR="/home/pinar"
+INPUT_DIR="/mnt/duckdb"
 MOUNT="/mnt/itu/duckdb"
 
 #Max device blocks 91814953
@@ -19,7 +19,7 @@ precondition_device_fdp() {
     sudo nvme create-ns /dev/nvme1 -b 4096 --nsze=$SIZE --ncap=$SIZE --nphndls=1 --phndls=0 && \
     sudo nvme attach-ns /dev/nvme1 --namespace-id=1 --controllers=0x7
 
-    /home/pinar/.local/fio/fio --filename=/dev/ng1n1 --size="100%" --name fillDevice --rw=write --numjobs=1 --ioengine=io_uring_cmd --iodepth=64 --bs=256k
+    # /home/pinar/.local/fio/fio --filename=/dev/ng1n1 --size="100%" --name fillDevice --rw=write --numjobs=1 --ioengine=io_uring_cmd --iodepth=64 --bs=256k
 }
 
 precondition_device() {
@@ -31,7 +31,7 @@ precondition_device() {
     nvme create-ns $DEVICE_PATH -b 4096 --nsze=$SIZE --ncap=$SIZE
     nvme attach-ns $DEVICE_PATH --namespace-id=1 --controllers=0x7
 
-    /home/pinar/.local/fio/fio --filename=/dev/ng1n1 --size="100%" --name fillDevice --rw=write --numjobs=1 --ioengine=io_uring_cmd --iodepth=64 --bs=256k
+    # /home/pinar/.local/fio/fio --filename=/dev/ng1n1 --size="100%" --name fillDevice --rw=write --numjobs=1 --ioengine=io_uring_cmd --iodepth=64 --bs=256k
 }
 
 remove_precondition_device() {
@@ -48,14 +48,14 @@ source ./init.sh
 ###################################
 # Run out-of-core benchmarks with focus on WAF numbers
 ###################################
-precondition_device_fdp $DEVICE $M_SIZE_PRECONDITION
+# precondition_device_fdp $DEVICE $M_SIZE_PRECONDITION
 
-python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 3500 --sf 128 --fdp oocha
+# python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 3500 --sf 128 --fdp oocha-spill
 
-remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+# remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
 precondition_device $DEVICE $M_SIZE_PRECONDITION
 
-python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 3500 --sf 128 oocha
+python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 3500 --sf 128 oocha-spill
 
 remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
 
