@@ -184,7 +184,7 @@ norandommap=1
 
         if args.timebased:
             sec_global += "time_based=1\n"
-            sec_global += f"duration={args.duration}\n"
+            sec_global += f"runtime={args.duration}\n"
         
         return sec_global
     
