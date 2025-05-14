@@ -16,7 +16,7 @@ def setup_tpch_benchmark(db: Database, input_dir_path: str, buffer_manager_size:
     db.query("SET threads=1;")
     db.query("PRAGMA disable_object_cache;")
 
-def run_tpch_epoch_benchmark(db: Database):
+def run_tpch_epoch_benchmark(db: Database, scale_factor: int):
 
     results: list[str] = []
 

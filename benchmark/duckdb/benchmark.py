@@ -250,7 +250,7 @@ if __name__ == "__main__":
 
     # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
     stop_measurement = start_device_measurements(device, device_output_file)
-    metric_results = run_benchmark(db, args.duration if run_with_duration else args.repetitions) 
+    metric_results = run_benchmark(db, args.scale_factor, args.duration if run_with_duration else args.repetitions) 
     stop_measurement()
     
     # Write the metric results to a CSV file
