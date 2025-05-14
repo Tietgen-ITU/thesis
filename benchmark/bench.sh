@@ -183,7 +183,7 @@ while getopts ":w:i:d:v:b:t:" opt
 done
 
 
-if [[ "$1" == "database" ]]; then
+if [[ $WORKLOAD == "database" ]]; then
 
     for tsize in "${TEMP_SIZES[@]}"
     do
