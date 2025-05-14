@@ -113,7 +113,7 @@ setup_device_fdp_enabled() {
     echo "___________________________"
 }
 
-# Takes 5 arguments: 
+# Takes 6 arguments: 
 # - 1. workload - string that specifies workload
 # - 2. temp size - int that specifies the percentage size of temporary storage 
 # - 3. duration - duration of experiment in seconds (default 1 hour)
@@ -147,6 +147,23 @@ run_workload() {
     fi
 }
 
+# Takes two arguments
+# 1 - duration
+# 2 - interval
+run_showcase_fdp() {
+    local var OUTDIR="./fio/cachelib_workload" 
+
+    setup_device_fdp_disabled
+    python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/2_ruh_vary_write_rate/no_fdp.txt" $2 $(( $1 / $2 )) & $FIO "$OUTDIR/2_ruh_vary_write_rate/non_fdp.fio" --output="$OUTDIR/2_ruh_vary_write_rate/no_fdp_result.txt" --output-format="json"
+    setup_device_fdp_enabled
+    python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/2_ruh_vary_write_rate/fdp.txt" $2 $(( $1 / $2 )) & $FIO "$OUTDIR/2_ruh_vary_write_rate/fdp.fio" --output="$OUTDIR/2_ruh_vary_write_rate/fdp_result.txt" --output-format="json"
+    setup_device_fdp_disabled
+    python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/4_ruh_seq_and_rand/no_fdp.txt" $2 $(( $1 / $2 )) & $FIO "$OUTDIR/4_ruh_seq_and_rand/non_fdp.fio" --output="$OUTDIR/4_ruh_seq_and_rand/no_fdp_result.txt" --output-format="json"
+    setup_device_fdp_enabled
+    python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/4_ruh_seq_and_rand/fdp.txt" $2 $(( $1 / $2 )) & $FIO "/4_ruh_seq_and_rand/xnvme_fdp.fio" --output="$OUTDIR/4_ruh_seq_and_rand/fdp_result.txt" --output-format="json"
+
+}
+
 WORKLOAD="database"
 TEMP_SIZES=()
 INTERVAL=0
@@ -165,7 +182,13 @@ while getopts ":w:i:d:v:b:t:" opt
         esac
 done
 
-for tsize in "${TEMP_SIZES[@]}"
-do
-    run_workload $WORKLOAD $tsize $DURATION $INTERVAL $DEV_TYPE $BACKEND
-done
+
+if [[ "$1" == "database" ]]; then
+
+    for tsize in "${TEMP_SIZES[@]}"
+    do
+      run_workload $WORKLOAD $tsize $DURATION $INTERVAL $DEV_TYPE $BACKEND
+    done
+elif [[ $WORKLOAD == "showcase" ]]; then
+    run_showcase_fdp $DURATION $INTERVAL
+fi
