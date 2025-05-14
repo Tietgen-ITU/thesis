@@ -59,10 +59,11 @@ def _getcounts(scale_factor: int):
     query_counts = {}
 
     with open(counts_filepath, newline='\n') as csvfile:
-        spamreader = csv.reader(csvfile, delimiter=';')
-        for row in spamreader:
-            pass
+        reader = csv.reader(csvfile, delimiter=';')
+        next(reader, None) # Skip the header
 
+        for group, count in reader:
+            query_counts[group] = int(count)
 
     return query_counts
 
@@ -70,13 +71,11 @@ def run_oocha_epoch_benchmark(db: Database, scale_factor: int):
 
     results = []
     queries = _getqueries()
+    query_counts = _getcounts(scale_factor)
 
     # counts_con = duckdb.connect()
     for grouping, wide, query in queries:
-        # Run the query
-        # TODO: Do something about this. We need counts
-        # count = counts_con.execute(f"""SELECT c FROM counts WHERE grouping = '{grouping}';""").fetchall()[0][0]
-        count = 2
+        count = query_counts[grouping]
         prepared_query = query.replace('offset', f'{count - 1}')
 
         start = time.perf_counter()
