@@ -241,7 +241,7 @@ if __name__ == "__main__":
     device_output_file = f"{name}-device.csv"
     output_file = f"{name}.csv"
 
-    run_benchmark, setup_benchmark = create_benchmark_runner(args.benchmark, run_with_duration)
+    run_benchmark, setup_benchmark = create_benchmark_runner(args.benchmark, args.scale_factor, run_with_duration)
 
     # Setup the database with the correct device config
     db, device = setup_device_and_db()
@@ -250,7 +250,7 @@ if __name__ == "__main__":
 
     # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
     stop_measurement = start_device_measurements(device, device_output_file)
-    metric_results = run_benchmark(db, args.scale_factor, args.duration if run_with_duration else args.repetitions) 
+    metric_results = run_benchmark(db, args.duration if run_with_duration else args.repetitions) 
     stop_measurement()
     
     # Write the metric results to a CSV file
