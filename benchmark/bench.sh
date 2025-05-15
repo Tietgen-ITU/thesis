@@ -153,11 +153,11 @@ run_workload() {
 run_showcase_fdp() {
     local var OUTDIR="./fio/cachelib_workload" 
 
-    setup_device_fdp_disabled
+    setup_device_fdp_enabled
     python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/2_ruh_vary_write_rate/no_fdp.txt" $2 $(( $1 / $2 )) & $FIO "$OUTDIR/2_ruh_vary_write_rate/non_fdp.fio" --output="$OUTDIR/2_ruh_vary_write_rate/no_fdp_result.txt" --output-format="json"
     setup_device_fdp_enabled
     python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/2_ruh_vary_write_rate/fdp.txt" $2 $(( $1 / $2 )) & $FIO "$OUTDIR/2_ruh_vary_write_rate/fdp.fio" --output="$OUTDIR/2_ruh_vary_write_rate/fdp_result.txt" --output-format="json"
-    setup_device_fdp_disabled
+    setup_device_fdp_enabled
     python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/4_ruh_seq_and_rand/no_fdp.txt" $2 $(( $1 / $2 )) & $FIO "$OUTDIR/4_ruh_seq_and_rand/non_fdp.fio" --output="$OUTDIR/4_ruh_seq_and_rand/no_fdp_result.txt" --output-format="json"
     setup_device_fdp_enabled
     python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/4_ruh_seq_and_rand/fdp.txt" $2 $(( $1 / $2 )) & $FIO "$OUTDIR/4_ruh_seq_and_rand/fdp.fio" --output="$OUTDIR/4_ruh_seq_and_rand/fdp_result.txt" --output-format="json"
