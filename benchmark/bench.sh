@@ -160,7 +160,7 @@ run_showcase_fdp() {
     setup_device_fdp_disabled
     python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/4_ruh_seq_and_rand/no_fdp.txt" $2 $(( $1 / $2 )) & $FIO "$OUTDIR/4_ruh_seq_and_rand/non_fdp.fio" --output="$OUTDIR/4_ruh_seq_and_rand/no_fdp_result.txt" --output-format="json"
     setup_device_fdp_enabled
-    python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/4_ruh_seq_and_rand/fdp.txt" $2 $(( $1 / $2 )) & $FIO "/4_ruh_seq_and_rand/xnvme_fdp.fio" --output="$OUTDIR/4_ruh_seq_and_rand/fdp_result.txt" --output-format="json"
+    python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/4_ruh_seq_and_rand/fdp.txt" $2 $(( $1 / $2 )) & $FIO "$OUTDIR/4_ruh_seq_and_rand/fdp.fio" --output="$OUTDIR/4_ruh_seq_and_rand/fdp_result.txt" --output-format="json"
 
 }
 
