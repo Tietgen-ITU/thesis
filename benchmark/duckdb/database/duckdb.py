@@ -9,7 +9,6 @@ class ConnectionConfig:
     use_fdp: bool = False
 class Database(ABC):
 
-
     def __init__(self, db_path: str):
         self.db_path = db_path
         self.connection: duckdb.DuckDBPyConnection = None
@@ -25,9 +24,15 @@ class Database(ABC):
 
     def _connect(self):
         if not self.get_is_connected:
-            self.connection = duckdb.connect(config={"allow_unsigned_extensions": "true"})
+            self.connection: duckdb.DuckDBPyConnection = duckdb.connect(config={"allow_unsigned_extensions": "true"})
+    
+    def create_concurrent_connection(self):
+        return ConcurrentDatabase(self.db_path, self.connection.cursor())
 
     def query(self, query: str):
+        return self.connection.query(query).fetchall()
+
+    def execute(self, query: str):
         return self.connection.execute(query)
 
     def add_extension(self, name: str):
@@ -45,12 +50,27 @@ class QuackDatabase(Database):
         super().__init__(db_path)
         super()._connect()
 
-        self.query(f"ATTACH DATABASE '{self.db_path}' AS bench (READ_WRITE);")
-        self.query("USE bench;")
+        self.execute(f"ATTACH DATABASE '{self.db_path}' AS bench (READ_WRITE);")
+        self.execute("USE bench;")
     
     def _setup(self):
         print("Setting up QuackDatabase")
         return
+
+class ConcurrentDatabase(Database):
+    """
+    ConcurrentDatabase is a Database wrapper of DuckDB that uses the concurrent connection
+    """
+
+    def __init__(self, db_path: str, connection: duckdb.DuckDBPyConnection):
+        super().__init__(db_path)
+        self.connection = connection
+
+    
+    def _setup(self):
+        print("Setting up ConcurrentDatabase")
+        return
+        
 
 class NvmeDatabase(Database):
     """
@@ -68,15 +88,15 @@ class NvmeDatabase(Database):
         install_extension("../../nvmefs/build/release/extension/nvmefs/nvmefs.duckdb_extension", self)
         super()._connect()
         self.add_extension("nvmefs")
-        self.query(f"""CREATE OR REPLACE PERSISTENT SECRET nvmefs (
+        self.execute(f"""CREATE OR REPLACE PERSISTENT SECRET nvmefs (
                         TYPE NVMEFS,
                         nvme_device_path '{self.device_path}',
                         fdp_plhdls       '{self.number_of_fdp_handles}',
                         backend          '{self.backend}'
                     );""")
         
-        self.query(f"ATTACH DATABASE '{self.db_path}' AS bench (READ_WRITE);")
-        self.query("USE bench;")
+        self.execute(f"ATTACH DATABASE '{self.db_path}' AS bench (READ_WRITE);")
+        self.execute("USE bench;")
 
 def add_extension(name: str, db: Database = None):
     if db is None or not db.get_is_connected:
