@@ -254,8 +254,6 @@ if __name__ == "__main__":
     stop_measurement()
     
     # Write the metric results to a CSV file
-    print(metric_results)
-
     with open(output_file, mode="w", newline="\n") as file:
         # Write the rows
         for result in metric_results:

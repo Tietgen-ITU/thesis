@@ -1,8 +1,8 @@
-
 import os
 import pathlib
 import subprocess
 from pathlib import Path
+import time
 
 class NvmeDeviceNamespace:
     def __init__(self, device_path: str, dev_path_id: int, namespace_id: int, number_of_blocks: int, log_id: str, sent_offset: list[int], written_offset:list[int], is_mounted: bool = False):
@@ -192,6 +192,8 @@ class NvmeDevice:
         is_mounted = mount_path is not None
         new_namespace = NvmeDeviceNamespace(device_path, namespace_id, namespace_id, ns_number_of_blocks, self.log_id, self.sent_offset, self.written_offset, is_mounted)
         self.namespaces.append(new_namespace)
+
+		time.sleep(10) # Wait for the namespace to be created
 
         if is_mounted:
             os.system(f"mkfs.ext4 {new_namespace.get_device_path()} -b {self.block_size} {ns_number_of_blocks}") # Format the device namespace

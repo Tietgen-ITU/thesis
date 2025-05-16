@@ -9,10 +9,11 @@ def setup_oocha_spill_benchmark(db: Database, input_dir_path: str, buffer_manage
     input_file_path = os.path.join(input_dir_path, f"oocha-{scale_factor}.db")
 
     db.query(f"ATTACH DATABASE '{input_file_path}' AS oocha (READ_WRITE);")
-    db.query("COPY FROM DATABASE oocha TO bench;")
-    db.query("DETACH DATABASE oocha;")
     db.query(f"SET memory_limit='{buffer_manager_size}MB';")
     db.query("SET threads=4;")
+    db.query("COPY FROM DATABASE oocha TO bench;")
+    db.query("DETACH DATABASE oocha;")
+    db.query("PRAGMA force_compression = 'uncompressed';")
     db.query("PRAGMA disable_object_cache;")
 
 
@@ -32,10 +33,10 @@ def setup_oocha_benchmark(db: Database, input_dir_path: str, buffer_manager_size
     input_file_path = os.path.join(input_dir_path, f"oocha-{scale_factor}.db")
 
     db.query(f"ATTACH DATABASE '{input_file_path}' AS oocha (READ_WRITE);")
+    db.query(f"SET memory_limit='{buffer_manager_size}MB';")
+    db.query("SET threads=16;")
     db.query("COPY FROM DATABASE oocha TO bench;")
     db.query("DETACH DATABASE oocha;")
-    db.query(f"SET memory_limit='{buffer_manager_size}MB';")
-    db.query("SET threads=4;")
     db.query("PRAGMA disable_object_cache;")
 
 def _getqueries():
