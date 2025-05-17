@@ -54,5 +54,7 @@ def create_benchmark_runner(name: str, scale_factor: int, run_with_duration: boo
         return create_runner_function(tpch.run_tpch_epoch_benchmark), tpch.setup_tpch_benchmark 
     elif name == oocha.OOCHA_SPILL_BENCHMARK_NAME:
         return create_runner_function(oocha.run_oocha_spill_epoch_benchmark), oocha.setup_oocha_spill_benchmark
+    elif name == oocha.OOCHA_BENCHMARK_NAME:
+        return create_runner_function(oocha.run_oocha_epoch_benchmark), oocha.setup_oocha_benchmark
     
     raise ValueError(f"Unknown benchmark '{name}'")
