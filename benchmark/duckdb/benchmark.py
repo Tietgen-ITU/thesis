@@ -196,6 +196,8 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
 
         setup_device(device, namespace_id=2, mount_path=args.mount_path)
         db: duckdb.Database = duckdb.connect(normal_db_path)
+        temp_dir = os.path.join(args.mount_path, ".tmp")        
+        db.execute(f"SET temp_directory = '{temp_dir}';")
 
         return db, device
 
