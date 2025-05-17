@@ -193,7 +193,7 @@ class NvmeDevice:
         new_namespace = NvmeDeviceNamespace(device_path, namespace_id, namespace_id, ns_number_of_blocks, self.log_id, self.sent_offset, self.written_offset, is_mounted)
         self.namespaces.append(new_namespace)
 
-		time.sleep(10) # Wait for the namespace to be created
+        time.sleep(10) # Wait for the namespace to be created
 
         if is_mounted:
             os.system(f"mkfs.ext4 {new_namespace.get_device_path()} -b {self.block_size} {ns_number_of_blocks}") # Format the device namespace

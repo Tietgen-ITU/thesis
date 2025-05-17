@@ -12,6 +12,8 @@ from datetime import datetime
 @dataclass
 class Arguments:
     duration: int = 0
+    parallel: int = 0
+    threads: int = 1
     repetitions: int = 0
     scale_factor: int = 1
     buffer_manager_mem_size: int = 50
@@ -124,6 +126,22 @@ class Arguments:
             default="./"
         )
 
+        parser.add_argument(
+            "-t",
+            "--threads",
+            type=int,
+            help="Number of threads to use for the duckdb instance",
+            default=1
+        )
+
+        parser.add_argument(
+            "-par",
+            "--parallel",
+            type=int,
+            help="Number of parallel executions of queries against duckdb",
+            default=0
+        )
+
         args = parser.parse_args()
         
         arguments: Arguments = Arguments(
@@ -137,7 +155,9 @@ class Arguments:
             use_generic_device=args.generic_device,
             benchmark=args.benchmark,
             mount_path=args.mount_path,
-            input_dir=args.input_directory
+            input_dir=args.input_directory,
+            threads=args.threads,
+            parallel=args.parallel
         )
 
         if not arguments.valid():
@@ -180,6 +200,44 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
         return db, device
 
     return setup_nvme if args.mount_path is None else setup_normal
+
+def create_execution_threads(num_threads: int, benchmark_runner, db: duckdb.Database, run_with_duration: bool):
+    """
+    Create a list of threads to run the benchmark
+    """
+
+    threads = []
+    for i in range(num_threads):
+        thread = Thread(target=benchmark_runner, args=(db.create_concurrent_connection(), args.duration if run_with_duration else args.repetitions))
+        threads.append(thread)
+    
+    return threads
+
+def run_benchmark_threads(threads: list[Thread]):
+    """
+    Run the benchmark threads and return the results
+    """
+
+    for thread in threads:
+        thread.start()
+    
+    return
+    
+
+def wait_for_completion(threads: list[Thread]):
+    """
+    Wait for all threads to complete
+    """
+    metric_results = []
+
+    for thread in threads:
+        results = thread.join()
+        
+        if results is not None or len(results) > 0:
+            # If the thread has results, extend the metric results
+            metric_results.extend(results)
+    
+    return metric_results
 
 RUN_MEASUREMENT = True
 def start_device_measurements(device: NvmeDevice, file_name: str):
@@ -245,12 +303,21 @@ if __name__ == "__main__":
 
     # Setup the database with the correct device config
     db, device = setup_device_and_db()
-
     setup_benchmark(db, args.input_dir, args.buffer_manager_mem_size, args.scale_factor)
+    metric_results = []
 
-    # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
+    # Run the benchmark
     stop_measurement = start_device_measurements(device, device_output_file)
-    metric_results = run_benchmark(db, args.duration if run_with_duration else args.repetitions) 
+
+    if args.parallel > 0:
+        print(f"Running benchmark with {args.threads} and {args.parallel} parallel executions")
+        benchmark_threads = create_execution_threads(args.parallel, db, args.duration if run_with_duration else args.repetitions)
+        run_benchmark_threads(benchmark_threads)
+        metric_results = wait_for_completion(benchmark_threads)
+    else:
+        print(f"Running benchmark with {args.threads} threads with sequential execution")
+        metric_results = run_benchmark(db, args.duration if run_with_duration else args.repetitions) 
+
     stop_measurement()
     
     # Write the metric results to a CSV file
