@@ -295,10 +295,11 @@ if __name__ == "__main__":
     setup_device_and_db = prepare_setup_func(args)
 
     run_with_duration = args.duration > 0
+    run_with_duration_display = f"dur{args.duration}" if run_with_duration else f"reps{args.repetitions}"
     par = f"p{args.parallel}" if args.parallel > 0 else "s"
     fdp_name = "fdp" if args.use_fdp else "nofdp"
     device_name = "nvme" if args.mount_path is None else "normal"
-    name = f"{args.benchmark}-{device_name}-mem{args.buffer_manager_mem_size}-{args.io_backend}-sf{args.scale_factor}-t{args.threads}-{par}-{fdp_name}" 
+    name = f"{args.benchmark}-{run_with_duration_display}-{device_name}-mem{args.buffer_manager_mem_size}-{args.io_backend}-sf{args.scale_factor}-t{args.threads}-{par}-{fdp_name}" 
 
     device_output_file = f"{name}-device.csv"
     output_file = f"{name}.csv"
