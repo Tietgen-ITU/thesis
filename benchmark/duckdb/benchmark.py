@@ -214,6 +214,7 @@ def run_execution_threads(num_threads: int, benchmark_runner, db: duckdb.Databas
         results = p.starmap(run_benchmark, 
                             [(db.create_concurrent_connection(), span) for _ in range(num_threads)], 
                             chunksize=1)
+        print(results)
         return results
 
 RUN_MEASUREMENT = True
