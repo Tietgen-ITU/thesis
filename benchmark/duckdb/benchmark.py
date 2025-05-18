@@ -206,9 +206,12 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
 
 def run_execution_threads(num_threads: int, benchmark_runner, db: duckdb.Database, span: int):
 
-    threads = []
+    def run_benchmark(db: duckdb.Database, span: int):
+        db.execute("USE bench;")
+        return benchmark_runner(db, span)
+
     with multiprocessing.pool.ThreadPool(processes=num_threads) as p:
-        results = p.starmap(benchmark_runner, 
+        results = p.starmap(run_benchmark, 
                             [(db.create_concurrent_connection(), span) for _ in range(num_threads)], 
                             chunksize=1)
         return results
