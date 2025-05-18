@@ -211,11 +211,13 @@ def run_execution_threads(num_threads: int, benchmark_runner, db: duckdb.Databas
         return benchmark_runner(db, span)
 
     with multiprocessing.pool.ThreadPool(processes=num_threads) as p:
+        flattented_results = []
         results = p.starmap(run_benchmark, 
                             [(db.create_concurrent_connection(), span) for _ in range(num_threads)], 
                             chunksize=1)
-        print(results)
-        return results
+        for result in results:
+            flattented_results.extend(result)
+        return flattented_results
 
 RUN_MEASUREMENT = True
 def start_device_measurements(device: NvmeDevice, file_name: str):
