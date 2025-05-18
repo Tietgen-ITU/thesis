@@ -40,7 +40,7 @@ def setup_oocha_benchmark(db: Database, input_dir_path: str, buffer_manager_size
     db.execute("PRAGMA disable_object_cache;")
 
 def _getqueries():
-    queries_dir = "./queries"
+    queries_dir = "./runner/oocha/queries"
     thin_queries_dir = os.path.join(queries_dir, "thin")
     wide_queries_dir = os.path.join(queries_dir, "wide")
     
