@@ -316,7 +316,7 @@ if __name__ == "__main__":
 
     if args.parallel > 0:
         print(f"Running benchmark with {args.threads} and {args.parallel} parallel executions")
-        benchmark_threads = create_execution_threads(args.parallel, db, args.duration if run_with_duration else args.repetitions)
+        benchmark_threads = create_execution_threads(args.parallel, run_benchmark, db, args.duration if run_with_duration else args.repetitions)
         run_benchmark_threads(benchmark_threads)
         metric_results = wait_for_completion(benchmark_threads)
     else:
