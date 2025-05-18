@@ -208,9 +208,9 @@ def run_execution_threads(num_threads: int, benchmark_runner, db: duckdb.Databas
 
     threads = []
     with multiprocessing.pool.ThreadPool(processes=num_threads) as p:
-        results = p.map(benchmark_runner, 
-                            [(db.create_concurrent_connection()) for _ in range(num_threads)], 
-                            [span for _ in range(num_threads)])
+        results = p.starmap(benchmark_runner, 
+                            [(db.create_concurrent_connection(), span) for _ in range(num_threads)], 
+                            chunksize=1)
         return results
 
 RUN_MEASUREMENT = True
