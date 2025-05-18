@@ -331,6 +331,6 @@ if __name__ == "__main__":
         for result in metric_results:
             file.write(result)
     
-    device.reset()
+    # device.reset()
 
     print(f"Benchmark results written to {output_file} and WAF results written to {device_output_file}")

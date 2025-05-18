@@ -167,7 +167,6 @@ class NvmeDevice:
         :param device_path: The path to the device
         :param namespace_id: The ID of the namespace to create
         :param enable_fdp: Whether to enable flexible data placement
-        :param size: The size in percentage(in a range [1,0]) of the device to use for the namespace. Example size of 50% is 0.5
         """
 
         # Create a namespace on the device
