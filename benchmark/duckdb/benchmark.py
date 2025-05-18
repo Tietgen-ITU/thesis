@@ -8,6 +8,7 @@ from runner.factory import create_benchmark_runner
 from device.nvme import NvmeDevice, setup_device, calculate_waf
 from database import duckdb
 from datetime import datetime
+import multiprocessing.pool
 
 @dataclass
 class Arguments:
@@ -203,43 +204,12 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
 
     return setup_nvme if args.mount_path is None else setup_normal
 
-def create_execution_threads(num_threads: int, benchmark_runner, db: duckdb.Database, run_with_duration: bool):
-    """
-    Create a list of threads to run the benchmark
-    """
+def run_execution_threads(num_threads: int, benchmark_runner, db: duckdb.Database, span: int):
 
     threads = []
-    for i in range(num_threads):
-        thread = Thread(target=benchmark_runner, args=(db.create_concurrent_connection(), args.duration if run_with_duration else args.repetitions))
-        threads.append(thread)
-    
-    return threads
-
-def run_benchmark_threads(threads: list[Thread]):
-    """
-    Run the benchmark threads and return the results
-    """
-
-    for thread in threads:
-        thread.start()
-    
-    return
-    
-
-def wait_for_completion(threads: list[Thread]):
-    """
-    Wait for all threads to complete
-    """
-    metric_results = []
-
-    for thread in threads:
-        results = thread.join()
-        
-        if results is not None or len(results) > 0:
-            # If the thread has results, extend the metric results
-            metric_results.extend(results)
-    
-    return metric_results
+    with multiprocessing.pool.ThreadPool(processes=num_threads) as p:
+        results = p.map(benchmark_runner, [(db.create_concurrent_connection(), span) for _ in range(num_threads)])
+        return results
 
 RUN_MEASUREMENT = True
 def start_device_measurements(device: NvmeDevice, file_name: str):
@@ -316,9 +286,7 @@ if __name__ == "__main__":
 
     if args.parallel > 0:
         print(f"Running benchmark with {args.threads} and {args.parallel} parallel executions")
-        benchmark_threads = create_execution_threads(args.parallel, run_benchmark, db, args.duration if run_with_duration else args.repetitions)
-        run_benchmark_threads(benchmark_threads)
-        metric_results = wait_for_completion(benchmark_threads)
+        metric_results = run_execution_threads(args.parallel, run_benchmark, db, args.duration if run_with_duration else args.repetitions)
     else:
         print(f"Running benchmark with {args.threads} threads with sequential execution")
         metric_results = run_benchmark(db, args.duration if run_with_duration else args.repetitions) 
