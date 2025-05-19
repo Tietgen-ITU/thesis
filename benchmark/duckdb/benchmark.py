@@ -266,13 +266,11 @@ def start_device_measurements(should_measure: bool, device: NvmeDevice, file_nam
         waf_measurement_runner.start()
 
     def stop_measurement():
-        if not should_measure:
-            return
-
-        print("Stopping WAF measurement")
-        global RUN_MEASUREMENT
-        RUN_MEASUREMENT = False
-        waf_measurement_runner.join()
+        if should_measure:
+            print("Stopping WAF measurement")
+            global RUN_MEASUREMENT
+            RUN_MEASUREMENT = False
+            waf_measurement_runner.join()
 
         return
 
