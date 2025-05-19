@@ -56,7 +56,7 @@ def _getqueries():
     return queries
 
 def _getcounts(scale_factor: int):
-    counts_filepath = f"./queries/counts-{scale_factor}.csv"
+    counts_filepath = f"{queries_dir}/counts-{scale_factor}.csv"
     query_counts = {}
 
     with open(counts_filepath, newline='\n') as csvfile:
