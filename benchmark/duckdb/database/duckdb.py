@@ -30,7 +30,7 @@ class Database(ABC):
     def _connect(self):
         if not self.get_is_connected:
             self.connection: duckdb.DuckDBPyConnection = duckdb.connect(
-                config={"allow_unsigned_extensions": "true", "memory_limit": f"{self.memory}MB", "threads": self.threads})
+                config={"allow_unsigned_extensions": "true", "max_temp_directory_size": "150GB", "memory_limit": f"{self.memory}MB", "threads": self.threads})
     
     def create_concurrent_connection(self):
         return ConcurrentDatabase(self.db_path, self.threads, self.memory, self.connection.cursor())
