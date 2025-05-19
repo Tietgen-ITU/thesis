@@ -1,5 +1,5 @@
 #!/bin/bash
-DURATION=20
+DURATION=10
 READ_DURATION=30
 REPETITIONS=10
 DEVICE="/dev/nvme1"
@@ -58,11 +58,11 @@ python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DE
 remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
 
 precondition_device_fdp $DEVICE $M_SIZE_PRECONDITION
-python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 14000 --sf 128 -t 16 -par 4 --fdp oocha-spill
+python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 14000 --sf 128 -t 64 -par 4 --fdp oocha-spill
 remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
 
 precondition_device $DEVICE $M_SIZE_PRECONDITION
-python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 14000 --sf 128 -t 16 -par 4 oocha-spill
+python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 14000 --sf 128 -t 64 -par 4 oocha-spill
 remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
 
 # Base line for the out-of-core benchmark
@@ -71,7 +71,7 @@ python3 benchmark.py -d $DURATION --mount_path $MOUNT --device_path $DEVICE --in
 remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
 
 precondition_device $DEVICE $M_SIZE_PRECONDITION
-python3 benchmark.py -d $DURATION --mount_path $MOUNT --device_path $DEVICE --input_directory $INPUT_DIR -m 14000 --sf 128 -t 16 -par 4 oocha-spill
+python3 benchmark.py -d $DURATION --mount_path $MOUNT --device_path $DEVICE --input_directory $INPUT_DIR -m 14000 --sf 128 -t 64 -par 4 oocha-spill
 remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
 
 ###################################
