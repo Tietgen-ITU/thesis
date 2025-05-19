@@ -4,13 +4,11 @@ from database.duckdb import Database
 
 TPCH_BENCHMARK_NAME = "tpch"
 
-def setup_tpch_benchmark(db: Database, input_dir_path: str, buffer_manager_size: int, threads: int, scale_factor: int):
+def setup_tpch_benchmark(db: Database, input_dir_path: str, scale_factor: int):
     input_file_path = os.path.join(input_dir_path, f"tpch-sf{scale_factor}.db")
 
     db.add_extension("tpch")
 
-    db.execute(f"SET memory_limit='{buffer_manager_size}MB';")
-    db.execute(f"set threads to {threads};")
     db.execute(f"ATTACH DATABASE '{input_file_path}' AS tpch (READ_WRITE);")
     db.execute("COPY FROM DATABASE tpch TO bench;")
     db.execute("DETACH DATABASE tpch;")

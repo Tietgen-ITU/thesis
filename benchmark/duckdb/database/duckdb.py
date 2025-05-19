@@ -7,11 +7,16 @@ class ConnectionConfig:
     device: str = ""
     backend: str = ""
     use_fdp: bool = False
+    memory: int = 0
+    threads: int = 0
+
 class Database(ABC):
 
-    def __init__(self, db_path: str):
+    def __init__(self, db_path: str, threads:int, memory: int):
         self.db_path = db_path
         self.connection: duckdb.DuckDBPyConnection = None
+        self.memory = memory
+        self.threads = threads
         self._setup()
     
     @abstractmethod
@@ -24,10 +29,11 @@ class Database(ABC):
 
     def _connect(self):
         if not self.get_is_connected:
-            self.connection: duckdb.DuckDBPyConnection = duckdb.connect(config={"allow_unsigned_extensions": "true"})
+            self.connection: duckdb.DuckDBPyConnection = duckdb.connect(
+                config={"allow_unsigned_extensions": "true", "memory_limit": f"{self.memory}MB", "threads": self.threads})
     
     def create_concurrent_connection(self):
-        return ConcurrentDatabase(self.db_path, self.connection.cursor())
+        return ConcurrentDatabase(self.db_path, self.threads, self.memory, self.connection.cursor())
 
     def query(self, query: str):
         return self.connection.query(query).fetchall()
@@ -41,13 +47,17 @@ class Database(ABC):
     def install_extension(self, name: str):
         self.connection.install_extension(name)
     
+    def close(self):
+        self.connection.close()
+        self.connection = None
+    
 class QuackDatabase(Database):
     """
     QuackDatabase is just a normal Database wrapper of DuckDB
     """
 
-    def __init__(self, db_path: str):
-        super().__init__(db_path)
+    def __init__(self, db_path: str, threads: int, memory: int):
+        super().__init__(db_path, threads, memory)
         super()._connect()
 
         self.execute(f"ATTACH DATABASE '{self.db_path}' AS bench (READ_WRITE);")
@@ -62,8 +72,8 @@ class ConcurrentDatabase(Database):
     ConcurrentDatabase is a Database wrapper of DuckDB that uses the concurrent connection
     """
 
-    def __init__(self, db_path: str, connection: duckdb.DuckDBPyConnection):
-        super().__init__(db_path)
+    def __init__(self, db_path: str, threads:int, memory: int, connection: duckdb.DuckDBPyConnection):
+        super().__init__(db_path, threads, memory)
         self.connection = connection
 
     
@@ -77,12 +87,12 @@ class NvmeDatabase(Database):
     NvmeDatabase is a Database wrapper of DuckDB that uses NVMe as the storage backend
     """
 
-    def __init__(self, db_path: str, config: ConnectionConfig):
+    def __init__(self, db_path: str, threads: int, memory: int, config: ConnectionConfig):
         self.device_path = config.device
         self.backend = config.backend
         self.use_fdp = config.use_fdp
         self.number_of_fdp_handles = 7
-        super().__init__(db_path)
+        super().__init__(db_path, threads, memory)
     
     def _setup(self):
         install_extension("../../nvmefs/build/release/extension/nvmefs/nvmefs.duckdb_extension", self)
@@ -116,13 +126,13 @@ def run_query(query: str, db: Database = None):
     else:
         db.query(query)
 
-def connect(db_path:str, config: ConnectionConfig = None) -> Database:
+def connect(db_path:str, threads: int, memory: int, config: ConnectionConfig = None) -> Database:
     # TODO: Use parameters and insert them into the connection string
     db: Database = None
 
     if db_path.startswith("nvmefs://"):
-        db = NvmeDatabase(db_path, config)
+        db = NvmeDatabase(db_path, threads, memory, config)
     else:
-        db = QuackDatabase(db_path)
+        db = QuackDatabase(db_path, threads, memory)
 
     return db

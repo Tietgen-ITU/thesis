@@ -185,9 +185,10 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
             device_path, 
             args.io_backend, 
             args.use_fdp)
-        duckdb.connect("nvmefs:///bench.db", config) # To set secrets first # TODO: Change this in the NvmeDatabase
+        config_db = duckdb.connect("nvmefs:///bench.db", args.threads, args.buffer_manager_mem_size, config) # To set secrets first # TODO: Change this in the NvmeDatabase
+        config_db.close()
 
-        db = duckdb.connect("nvmefs:///bench.db", config)
+        db = duckdb.connect("nvmefs:///bench.db", args.threads, args.buffer_manager_mem_size, config)
 
         return db, device
     
@@ -196,7 +197,7 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
         normal_db_path = os.path.join(args.mount_path, "bench.db")
 
         setup_device(device, namespace_id=2, mount_path=args.mount_path)
-        db: duckdb.Database = duckdb.connect(normal_db_path)
+        db: duckdb.Database = duckdb.connect(normal_db_path, args.threads, args.buffer_manager_mem_size)
         temp_dir = os.path.join(args.mount_path, ".tmp")        
         db.execute(f"SET temp_directory = '{temp_dir}';")
 
@@ -286,7 +287,7 @@ if __name__ == "__main__":
 
     # Setup the database with the correct device config
     db, device = setup_device_and_db()
-    setup_benchmark(db, args.input_dir, args.buffer_manager_mem_size, args.threads, args.scale_factor)
+    setup_benchmark(db, args.input_dir, args.scale_factor)
     metric_results = []
 
     # Run the benchmark
