@@ -220,7 +220,7 @@ def run_execution_threads(num_threads: int, benchmark_runner, db: duckdb.Databas
         return flattented_results
 
 RUN_MEASUREMENT = True
-def start_device_measurements(device: NvmeDevice, file_name: str):
+def start_device_measurements(should_measure: bool, device: NvmeDevice, file_name: str):
     """
     Start the device measurements for the benchmark and returns that thread running the task
     """
@@ -256,9 +256,14 @@ def start_device_measurements(device: NvmeDevice, file_name: str):
         os.fsync(waf_file.fileno())
         waf_file.close()
     
-    waf_measurement_runner = Thread(target=run, args=(device, file_name))
-    waf_measurement_runner.start()
+    if should_measure:
+        waf_measurement_runner = Thread(target=run, args=(device, file_name))
+        waf_measurement_runner.start()
+
     def stop_measurement():
+        if not should_measure:
+            return
+
         global RUN_MEASUREMENT
         RUN_MEASUREMENT = False
         waf_measurement_runner.join()
@@ -291,7 +296,7 @@ if __name__ == "__main__":
     metric_results = []
 
     # Run the benchmark
-    stop_measurement = start_device_measurements(device, device_output_file)
+    stop_measurement = start_device_measurements(not run_with_duration, device, device_output_file)
 
     if args.parallel > 0:
         print(f"Running benchmark with {args.parallel} parallel executions")
