@@ -301,6 +301,7 @@ if __name__ == "__main__":
         metric_results = run_benchmark(db, args.duration if run_with_duration else args.repetitions) 
 
     stop_measurement()
+
     
     # Write the metric results to a CSV file
     with open(output_file, mode="w", newline="\n") as file:
@@ -308,6 +309,7 @@ if __name__ == "__main__":
         for result in metric_results:
             file.write(result)
     
+    db.close()
     device.reset()
 
     print(f"Benchmark results written to {output_file} and WAF results written to {device_output_file}")
