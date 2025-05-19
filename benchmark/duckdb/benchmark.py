@@ -27,7 +27,6 @@ class Arguments:
     input_dir: str = "./"
 
     def valid(self) -> bool:
-        print(self)
         if self.use_fdp and self.device is None:
             print("Device path is required")
             return False
@@ -287,6 +286,7 @@ if __name__ == "__main__":
 
     # Setup the database with the correct device config
     db, device = setup_device_and_db()
+    print(f"Setting up benchmark using {args.threads} threads and {args.buffer_manager_mem_size} MB of memory")
     setup_benchmark(db, args.input_dir, args.scale_factor)
     metric_results = []
 
@@ -294,10 +294,10 @@ if __name__ == "__main__":
     stop_measurement = start_device_measurements(device, device_output_file)
 
     if args.parallel > 0:
-        print(f"Running benchmark with {args.threads} and {args.parallel} parallel executions")
+        print(f"Running benchmark with {args.parallel} parallel executions")
         metric_results = run_execution_threads(args.parallel, run_benchmark, db, args.duration if run_with_duration else args.repetitions)
     else:
-        print(f"Running benchmark with {args.threads} threads with sequential execution")
+        print(f"Running benchmark with sequential execution")
         metric_results = run_benchmark(db, args.duration if run_with_duration else args.repetitions) 
 
     stop_measurement()
