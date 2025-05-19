@@ -265,8 +265,8 @@ def start_device_measurements(should_measure: bool, device: NvmeDevice, file_nam
         waf_measurement_runner = Thread(target=run, args=(device, file_name))
         waf_measurement_runner.start()
 
-    def stop_measurement():
-        if should_measure:
+    def stop_measurement(is_measuring: bool):
+        if is_measuring:
             print("Stopping WAF measurement")
             global RUN_MEASUREMENT
             RUN_MEASUREMENT = False
@@ -300,7 +300,7 @@ if __name__ == "__main__":
     metric_results = []
 
     # Run the benchmark
-    stop_measurement = start_device_measurements(not run_with_duration, device, device_output_file)
+    stop_measurement = start_device_measurements(run_with_duration, device, device_output_file)
 
     if args.parallel > 0:
         print(f"Running benchmark with {args.parallel} parallel executions")
@@ -309,7 +309,7 @@ if __name__ == "__main__":
         print(f"Running benchmark with sequential execution")
         metric_results = run_benchmark(db, args.duration if run_with_duration else args.repetitions) 
 
-    stop_measurement()
+    stop_measurement(run_with_duration)
 
     
     # Write the metric results to a CSV file
