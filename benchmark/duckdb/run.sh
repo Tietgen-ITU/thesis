@@ -77,21 +77,21 @@ source ./init.sh
 ###################################
 # Run all out-of-core benchmarks with focus on the individual elasped times
 ###################################
-precondition_device_fdp $DEVICE $M_SIZE_PRECONDITION
-python3 benchmark.py -r $REPETITIONS --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf 2 -t 16 --fdp oocha
-remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+# precondition_device_fdp $DEVICE $M_SIZE_PRECONDITION
+# python3 benchmark.py -r $REPETITIONS --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf 2 -t 16 --fdp oocha
+# remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
 
-precondition_device_fdp $DEVICE $M_SIZE_PRECONDITION
-python3 benchmark.py -r $REPETITIONS --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf 8 -t 16 --fdp oocha
-remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+# precondition_device_fdp $DEVICE $M_SIZE_PRECONDITION
+# python3 benchmark.py -r $REPETITIONS --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf 8 -t 16 --fdp oocha
+# remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
 
-precondition_device_fdp $DEVICE $M_SIZE_PRECONDITION
-python3 benchmark.py -r $REPETITIONS --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf 32 -t 16 --fdp oocha
-remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+# precondition_device_fdp $DEVICE $M_SIZE_PRECONDITION
+# python3 benchmark.py -r $REPETITIONS --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf 32 -t 16 --fdp oocha
+# remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
 
-precondition_device_fdp $DEVICE $M_SIZE_PRECONDITION
-python3 benchmark.py -r $REPETITIONS --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf 128 -t 16 --fdp oocha
-remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+# precondition_device_fdp $DEVICE $M_SIZE_PRECONDITION
+# python3 benchmark.py -r $REPETITIONS --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf 128 -t 16 --fdp oocha
+# remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
 
 precondition_device $DEVICE $M_SIZE_PRECONDITION
 python3 benchmark.py -r $REPETITIONS --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf 2 -t 16 oocha
