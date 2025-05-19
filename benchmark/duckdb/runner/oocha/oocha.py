@@ -72,6 +72,7 @@ def run_oocha_epoch_benchmark(db: Database, scale_factor: int):
 
     # counts_con = duckdb.connect()
     for grouping, wide, query in queries:
+        print(f"Running {grouping} {'wide' if wide else 'thin'} query")
         count = query_counts[grouping]
         prepared_query = query.replace('offset', f'{count - 1}')
 

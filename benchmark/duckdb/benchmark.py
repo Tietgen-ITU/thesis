@@ -184,10 +184,14 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
             device_path, 
             args.io_backend, 
             args.use_fdp)
+        print("Configurring database")
         config_db = duckdb.connect("nvmefs:///bench.db", args.threads, args.buffer_manager_mem_size, config) # To set secrets first # TODO: Change this in the NvmeDatabase
         config_db.close()
+        time.sleep(3)
 
+        print("Restarting database")
         db = duckdb.connect("nvmefs:///bench.db", args.threads, args.buffer_manager_mem_size, config)
+        print("Database connected")
 
         return db, device
     
