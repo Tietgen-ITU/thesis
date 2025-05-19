@@ -9,11 +9,11 @@ def setup_tpch_benchmark(db: Database, input_dir_path: str, buffer_manager_size:
 
     db.add_extension("tpch")
 
+    db.execute(f"SET memory_limit='{buffer_manager_size}MB';")
+    db.execute(f"set threads to {threads};")
     db.execute(f"ATTACH DATABASE '{input_file_path}' AS tpch (READ_WRITE);")
     db.execute("COPY FROM DATABASE tpch TO bench;")
     db.execute("DETACH DATABASE tpch;")
-    db.execute(f"SET memory_limit='{buffer_manager_size}MB';")
-    db.execute(f"set threads to {threads};")
     db.execute("PRAGMA disable_object_cache;")
 
 def run_tpch_epoch_benchmark(db: Database, scale_factor: int):

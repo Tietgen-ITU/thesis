@@ -8,9 +8,9 @@ OOCHA_SPILL_BENCHMARK_NAME = "oocha-spill"
 def setup_oocha_spill_benchmark(db: Database, input_dir_path: str, buffer_manager_size: int, threads: int, scale_factor: int):
     input_file_path = os.path.join(input_dir_path, f"oocha-{scale_factor}.db")
 
-    db.execute(f"ATTACH DATABASE '{input_file_path}' AS oocha;")
     db.execute(f"SET memory_limit='{buffer_manager_size}MB';")
     db.execute(f"SET threads={threads};")
+    db.execute(f"ATTACH DATABASE '{input_file_path}' AS oocha;")
     db.execute("COPY FROM DATABASE oocha TO bench;")
     db.execute("DETACH DATABASE oocha;")
     db.execute("PRAGMA force_compression = 'uncompressed';")
@@ -32,9 +32,9 @@ OOCHA_BENCHMARK_NAME = "oocha"
 def setup_oocha_benchmark(db: Database, input_dir_path: str, buffer_manager_size: int, threads: int, scale_factor: int):
     input_file_path = os.path.join(input_dir_path, f"oocha-{scale_factor}.db")
 
-    db.execute(f"ATTACH DATABASE '{input_file_path}' AS oocha;")
     db.execute(f"SET memory_limit='{buffer_manager_size}MB';")
     db.execute(f"set threads to {threads};")
+    db.execute(f"ATTACH DATABASE '{input_file_path}' AS oocha;")
     db.execute("COPY FROM DATABASE oocha TO bench;")
     db.execute("DETACH DATABASE oocha;")
     db.execute("PRAGMA disable_object_cache;")
