@@ -45,6 +45,8 @@ remove_precondition_device() {
     nvme delete-ns $DEVICE_PATH --namespace-id=1
 }
 
+source /home/pinar/.bashrc
+source ./init.sh
 
 ###################################
 # Run all out-of-core benchmarks with focus on the individual elasped times
