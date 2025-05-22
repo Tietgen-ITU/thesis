@@ -1,5 +1,5 @@
 #!/bin/bash
-DURATION=240
+DURATION=900
 REPETITIONS=6
 DEVICE="/dev/nvme1"
 INPUT_DIR="/mnt/duckdb"
@@ -107,35 +107,35 @@ done
 # Run all out-of-core benchmarks with focus on WAF
 ###################################
 
-## normal
-precondition_device $DEVICE $M_SIZE_PRECONDITION
-precondition_device
-python3 benchmark.py -d $DURATION --mount_path $MOUNT --device_path $DEVICE --input_directory $INPUT_DIR -m 20000 --sf 1000 -t 24 oocha-spill
-remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
-
-
-precondition_device $DEVICE $M_SIZE_PRECONDITION
-precondition_device
-python3 benchmark.py -d $DURATION --mount_path $MOUNT --device_path $DEVICE --input_directory $INPUT_DIR -m 40000 --sf 1000 -t 96 -par 4 oocha-spill
-remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
-
 # nvme
-setup_precondition_ns_fdp $DEVICE $M_SIZE_PRECONDITION
+# setup_precondition_ns_fdp $DEVICE $M_SIZE_PRECONDITION
+# precondition_device
+# python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf 1000 -t 24 --fdp oocha-spill
+# remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+
+setup_precondition_ns $DEVICE $M_SIZE_PRECONDITION
 precondition_device
-python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf 1000 -t 24 --fdp oocha-spill
+python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 80000 --sf 1000 -t 90 -par 4 oocha-spill
 remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
 
 setup_precondition_ns_fdp $DEVICE $M_SIZE_PRECONDITION
 precondition_device
-python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 14000 --sf 1000 -t 96 -par 4 --fdp oocha-spill
+python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 80000 --sf 1000 -t 90 -par 4 --fdp oocha-spill
 remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+
+# precondition_device $DEVICE $M_SIZE_PRECONDITION
+# precondition_device
+# python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 3500 --sf 1000 -t 24 oocha-spill
+# remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+
+## normal
+# precondition_device $DEVICE $M_SIZE_PRECONDITION
+# precondition_device
+# python3 benchmark.py -d $DURATION --mount_path $MOUNT --device_path $DEVICE --input_directory $INPUT_DIR -m 80000 --sf 1000 -t 90 oocha-spill
+# remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+
 
 precondition_device $DEVICE $M_SIZE_PRECONDITION
 precondition_device
-python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 3500 --sf 1000 -t 24 oocha-spill
-remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
-
-setup_precondition_ns_fdp $DEVICE $M_SIZE_PRECONDITION
-precondition_device
-python3 benchmark.py -d $DURATION --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 14000 --sf 1000 -t 96 -par 4 oocha-spill
+python3 benchmark.py -d $DURATION --mount_path $MOUNT --device_path $DEVICE --input_directory $INPUT_DIR -m 80000 --sf 1000 -t 90 -par 4 oocha-spill
 remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
