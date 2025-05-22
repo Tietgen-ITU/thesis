@@ -257,17 +257,15 @@ def start_device_measurements(should_measure: bool, device: NvmeDevice, file_nam
         os.fsync(waf_file.fileno())
         waf_file.close()
     
-    if should_measure:
-        print("Starting WAF measurement")
-        waf_measurement_runner = Thread(target=run, args=(device, file_name))
-        waf_measurement_runner.start()
+    print("Starting WAF measurement")
+    waf_measurement_runner = Thread(target=run, args=(device, file_name))
+    waf_measurement_runner.start()
 
     def stop_measurement(is_measuring: bool):
-        if is_measuring:
-            print("Stopping WAF measurement")
-            global RUN_MEASUREMENT
-            RUN_MEASUREMENT = False
-            waf_measurement_runner.join()
+        print("Stopping WAF measurement")
+        global RUN_MEASUREMENT
+        RUN_MEASUREMENT = False
+        waf_measurement_runner.join()
 
         return
 
