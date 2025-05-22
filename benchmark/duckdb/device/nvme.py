@@ -1,8 +1,8 @@
-
 import os
 import pathlib
 import subprocess
 from pathlib import Path
+import time
 
 class NvmeDeviceNamespace:
     def __init__(self, device_path: str, dev_path_id: int, namespace_id: int, number_of_blocks: int, log_id: str, sent_offset: list[int], written_offset:list[int], is_mounted: bool = False):
@@ -89,7 +89,7 @@ class NvmeDevice:
         unallocated_block_output = subprocess.check_output(unallocated_blocks_command, shell=True)
 
         number_of_blocks = int(block_output)
-        unallocated_number_of_blocks = int(unallocated_block_output)
+        unallocated_number_of_blocks = int(unallocated_block_output) - 713958 # Based on experience that some metadata needs allocated on the device
 
         return number_of_blocks, unallocated_number_of_blocks
     
@@ -167,7 +167,6 @@ class NvmeDevice:
         :param device_path: The path to the device
         :param namespace_id: The ID of the namespace to create
         :param enable_fdp: Whether to enable flexible data placement
-        :param size: The size in percentage(in a range [1,0]) of the device to use for the namespace. Example size of 50% is 0.5
         """
 
         # Create a namespace on the device
@@ -185,18 +184,17 @@ class NvmeDevice:
 
         # Attach the namespace to the device
         result = os.system(f"nvme attach-ns {device_path} --namespace-id={namespace_id} --controllers=0x7")
-        cmd = f"nvme list --output-format=json | jq -r '.Devices[] | select(.NameSpace == {namespace_id}) | .DevicePath' | grep '{device_path}'"
-        ns_path = subprocess.check_output(cmd, shell=True).decode("utf-8")
-        ns_id = int(ns_path[-2])
 
         if result != 0:
             raise Exception("Failed to attach namespace")
         
         is_mounted = mount_path is not None
-        new_namespace = NvmeDeviceNamespace(device_path, ns_id, namespace_id, ns_number_of_blocks, self.log_id, self.sent_offset, self.written_offset, is_mounted)
+        new_namespace = NvmeDeviceNamespace(device_path, namespace_id, namespace_id, ns_number_of_blocks, self.log_id, self.sent_offset, self.written_offset, is_mounted)
         self.namespaces.append(new_namespace)
 
+
         if is_mounted:
+            time.sleep(10) # Wait for the namespace to be created
             os.system(f"mkfs.ext4 {new_namespace.get_device_path()} -b {self.block_size} {ns_number_of_blocks}") # Format the device namespace
             result = os.system(f"mount {new_namespace.get_device_path()} {mount_path}") # Mount the device namespace to a mount path
 
@@ -259,4 +257,4 @@ def setup_device(device: NvmeDevice, namespace_id:int = 1, enable_fdp: bool = Fa
     #     device.disable_fdp()
     
     # Create new namespace with a new configuration
-    return device.create_namespace(device.base_device_path, namespace_id, enable_fdp, mount_path=mount_path, size=size)
+    return device.create_namespace(device.base_device_path, namespace_id, enable_fdp, mount_path=mount_path)

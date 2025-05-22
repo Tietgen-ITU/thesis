@@ -8,10 +8,14 @@ from runner.factory import create_benchmark_runner
 from device.nvme import NvmeDevice, setup_device, calculate_waf
 from database import duckdb
 from datetime import datetime
+import multiprocessing.pool
 
 @dataclass
 class Arguments:
-    duration: int = 1
+    duration: int = 0
+    parallel: int = 0
+    threads: int = 1
+    repetitions: int = 0
     scale_factor: int = 1
     buffer_manager_mem_size: int = 50
     device: str = ""
@@ -23,9 +27,12 @@ class Arguments:
     input_dir: str = "./"
 
     def valid(self) -> bool:
-        print(self)
         if self.use_fdp and self.device is None:
             print("Device path is required")
+            return False
+
+        if (self.repetitions == 0 and self.duration == 0) or (self.repetitions != 0 and self.duration != 0):
+            print("Either duration or repetitions must be set")
             return False
         
         return True
@@ -52,7 +59,15 @@ class Arguments:
             "--duration",
             type=int,
             help="Duration in minutes to run the benchmark",
-            default=10
+            default=0
+        )
+
+        parser.add_argument(
+            "-r",
+            "--repetitions",
+            type=int,
+            help="Amount of repetitions to run the benchmark",
+            default=0
         )
 
         parser.add_argument(
@@ -111,10 +126,27 @@ class Arguments:
             default="./"
         )
 
+        parser.add_argument(
+            "-t",
+            "--threads",
+            type=int,
+            help="Number of threads to use for the duckdb instance",
+            default=1
+        )
+
+        parser.add_argument(
+            "-par",
+            "--parallel",
+            type=int,
+            help="Number of parallel executions of queries against duckdb",
+            default=0
+        )
+
         args = parser.parse_args()
         
         arguments: Arguments = Arguments(
             duration=args.duration,
+            repetitions=args.repetitions,
             device=args.device_path,
             scale_factor=args.sf,
             buffer_manager_mem_size=args.memory_limit,
@@ -123,7 +155,9 @@ class Arguments:
             use_generic_device=args.generic_device,
             benchmark=args.benchmark,
             mount_path=args.mount_path,
-            input_dir=args.input_directory
+            input_dir=args.input_directory,
+            threads=args.threads,
+            parallel=args.parallel
         )
 
         if not arguments.valid():
@@ -150,9 +184,11 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
             device_path, 
             args.io_backend, 
             args.use_fdp)
-        duckdb.connect("nvmefs:///bench.db", config) # To set secrets first # TODO: Change this in the NvmeDatabase
-
-        db = duckdb.connect("nvmefs:///bench.db", config)
+        # print("Configurring database")
+        # config_db = duckdb.connect("nvmefs:///bench.db", args.threads, args.buffer_manager_mem_size, config) # To set secrets first # TODO: Change this in the NvmeDatabase
+        # config_db.close()
+        # time.sleep(3)
+        db = duckdb.connect("nvmefs:///bench.db", args.threads, args.buffer_manager_mem_size, config)
 
         return db, device
     
@@ -161,14 +197,31 @@ def prepare_setup_func(args: Arguments) -> SetupFunc:
         normal_db_path = os.path.join(args.mount_path, "bench.db")
 
         setup_device(device, namespace_id=2, mount_path=args.mount_path)
-        db: duckdb.Database = duckdb.connect(normal_db_path)
+        db: duckdb.Database = duckdb.connect(normal_db_path, args.threads, args.buffer_manager_mem_size)
+        temp_dir = os.path.join(args.mount_path, ".tmp")        
+        db.execute(f"SET temp_directory = '{temp_dir}';")
 
         return db, device
 
     return setup_nvme if args.mount_path is None else setup_normal
 
+def run_execution_threads(num_threads: int, benchmark_runner, db: duckdb.Database, span: int):
+
+    def run_benchmark(db: duckdb.Database, span: int):
+        db.execute("USE bench;")
+        return benchmark_runner(db, span)
+
+    with multiprocessing.pool.ThreadPool(processes=num_threads) as p:
+        flattented_results = []
+        results = p.starmap(run_benchmark, 
+                            [(db.create_concurrent_connection(), span) for _ in range(num_threads)], 
+                            chunksize=1)
+        for result in results:
+            flattented_results.extend(result)
+        return flattented_results
+
 RUN_MEASUREMENT = True
-def start_device_measurements(device: NvmeDevice, file_name: str):
+def start_device_measurements(should_measure: bool, device: NvmeDevice, file_name: str):
     """
     Start the device measurements for the benchmark and returns that thread running the task
     """
@@ -204,9 +257,12 @@ def start_device_measurements(device: NvmeDevice, file_name: str):
         os.fsync(waf_file.fileno())
         waf_file.close()
     
+    print("Starting WAF measurement")
     waf_measurement_runner = Thread(target=run, args=(device, file_name))
     waf_measurement_runner.start()
-    def stop_measurement():
+
+    def stop_measurement(is_measuring: bool):
+        print("Stopping WAF measurement")
         global RUN_MEASUREMENT
         RUN_MEASUREMENT = False
         waf_measurement_runner.join()
@@ -220,32 +276,44 @@ if __name__ == "__main__":
     args: Arguments = Arguments.parse_args()
     setup_device_and_db = prepare_setup_func(args)
 
+    run_with_duration = args.duration > 0
+    run_with_duration_display = f"dur{args.duration}" if run_with_duration else f"reps{args.repetitions}"
+    par = f"p{args.parallel}" if args.parallel > 0 else "s"
     fdp_name = "fdp" if args.use_fdp else "nofdp"
     device_name = "nvme" if args.mount_path is None else "normal"
-    name = f"duckdb-{args.benchmark}-{device_name}-mem{args.buffer_manager_mem_size}-{args.io_backend}-sf{args.scale_factor}-{fdp_name}" 
+    name = f"{args.benchmark}-{run_with_duration_display}-{device_name}-mem{args.buffer_manager_mem_size}-{args.io_backend}-sf{args.scale_factor}-t{args.threads}-{par}-{fdp_name}" 
+
     device_output_file = f"{name}-device.csv"
     output_file = f"{name}.csv"
 
-    run_benchmark, setup_benchmark = create_benchmark_runner(args.benchmark)
+    run_benchmark, setup_benchmark = create_benchmark_runner(args.benchmark, args.scale_factor, run_with_duration)
 
     # Setup the database with the correct device config
     db, device = setup_device_and_db()
+    print(f"Setting up benchmark using {args.threads} threads and {args.buffer_manager_mem_size} MB of memory")
+    setup_benchmark(db, args.input_dir, args.scale_factor)
+    metric_results = []
 
-    setup_benchmark(db, args.input_dir, args.buffer_manager_mem_size, args.scale_factor)
+    # Run the benchmark
+    stop_measurement = start_device_measurements(run_with_duration, device, device_output_file)
 
-    # NOTE: The connection is not thread-safe, search for duckdb cursor in the client library to see how to use in a multi-threaded environment
-    stop_measurement = start_device_measurements(device, device_output_file)
-    metric_results = run_benchmark(db, args.duration) 
-    stop_measurement()
+    if args.parallel > 0:
+        print(f"Running benchmark with {args.parallel} parallel executions")
+        metric_results = run_execution_threads(args.parallel, run_benchmark, db, args.duration if run_with_duration else args.repetitions)
+    else:
+        print(f"Running benchmark with sequential execution")
+        metric_results = run_benchmark(db, args.duration if run_with_duration else args.repetitions) 
+
+    stop_measurement(run_with_duration)
+
     
     # Write the metric results to a CSV file
-    print(metric_results)
-
     with open(output_file, mode="w", newline="\n") as file:
         # Write the rows
         for result in metric_results:
             file.write(result)
     
+    db.close()
     device.reset()
 
     print(f"Benchmark results written to {output_file} and WAF results written to {device_output_file}")

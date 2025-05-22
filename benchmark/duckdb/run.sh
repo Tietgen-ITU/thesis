@@ -17,7 +17,7 @@ setup_precondition_ns_fdp() {
 
     sudo nvme set-feature $DEVICE_PATH -f 0x1D -c 1 -s
 
-    sudo nvme create-ns /dev/nvme1 -b 4096 --nsze=826334573 --ncap=826334573 --nphndls=1 --phndls=0
+    sudo nvme create-ns /dev/nvme1 -b 4096 --nsze=$SIZE --ncap=$SIZE --nphndls=1 --phndls=6
     sudo nvme attach-ns /dev/nvme1 --namespace-id=1 --controllers=0x7
 }
 
@@ -112,6 +112,7 @@ precondition_device $DEVICE $M_SIZE_PRECONDITION
 precondition_device
 python3 benchmark.py -d $DURATION --mount_path $MOUNT --device_path $DEVICE --input_directory $INPUT_DIR -m 20000 --sf 1000 -t 24 oocha-spill
 remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+
 
 precondition_device $DEVICE $M_SIZE_PRECONDITION
 precondition_device
