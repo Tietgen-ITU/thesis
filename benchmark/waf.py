@@ -30,7 +30,6 @@ def get_waf(last_host, last_media):
     return (diff_media/diff_host, host, media)
 
 def measure_waf(out):
-    os.makedirs(out, exist_ok=True)
     waf_file = open(out, "w+")
     
     initial_stats = get_waf(0, 0)
