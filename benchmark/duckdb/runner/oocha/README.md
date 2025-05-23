@@ -7,7 +7,7 @@ All queries are performed on the TPC-H generated table by the DuckDB team with a
 select * from duckdb_memory();
 ```
 
-**l_orderkey - 25%**
+## l_orderkey - 25%
 ```sql
 SELECT l_orderkey FROM lineitem GROUP BY l_orderkey OFFSET 1499999999
 ```
