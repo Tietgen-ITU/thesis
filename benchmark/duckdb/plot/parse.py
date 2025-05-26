@@ -98,3 +98,19 @@ def parse_oocha_results(filepath: str) -> BenchmarkRun:
 
     benchmark.results = grouped_results
     return benchmark
+
+def parse_tpch_results(filepath: str) -> BenchmarkRun:
+    """
+    Parse the TPCH results file to extract the benchmark name and parameters.
+    """
+    benchmark = parse_filename(filepath)
+
+    grouped_results = defaultdict(lambda: list())
+    with open(filepath, newline='\n') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';')
+
+        for query_nr, elapsed_ms in reader:
+            grouped_results[int(query_nr)].append(float(elapsed_ms))
+
+    benchmark.results = grouped_results
+    return benchmark
