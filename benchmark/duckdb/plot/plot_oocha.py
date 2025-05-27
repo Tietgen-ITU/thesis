@@ -9,9 +9,14 @@ def calculate_oocha_aggregates(benchmark_runs: list[parse.BenchmarkRun]):
     grouping_thin_results = defaultdict(lambda: list())
     grouping_wide_results = defaultdict(lambda: list())
 
+    grouping_thin_std_dev = defaultdict(lambda: list())
+    grouping_wide_std_dev = defaultdict(lambda: list())
+
     for grouping in range(1, 14):
         agg_thin_result = [0] * 3
         agg_wide_result = [0] * 3
+        std_dev_thin = [0] * 3
+        std_dev_wide = [0] * 3
 
         for run in benchmark_runs:
             index = 0
@@ -21,13 +26,17 @@ def calculate_oocha_aggregates(benchmark_runs: list[parse.BenchmarkRun]):
 
             agg_thin_result[index] = sum(run.results[(grouping, False)]) / len(run.results[(grouping, False)])
             agg_wide_result[index] = sum(run.results[(grouping, True)]) / len(run.results[(grouping, True)])
+            std_dev_thin[index] = np.std(run.results[(grouping, False)])
+            std_dev_wide[index] = np.std(run.results[(grouping, True)])
 
         grouping_thin_results[grouping] = agg_thin_result
         grouping_wide_results[grouping] = agg_wide_result
+        grouping_thin_std_dev[grouping] = std_dev_thin
+        grouping_wide_std_dev[grouping] = std_dev_wide
     
-    return grouping_thin_results, grouping_wide_results
+    return (grouping_thin_results, grouping_thin_std_dev), (grouping_wide_results, grouping_wide_std_dev)
 
-def plot_bar_oocha_results(results: dict, x_names: list, title: str, output_dir: str, file_name: str):
+def plot_bar_oocha_results(results: dict, std_deviate, x_names: list, title: str, output_dir: str, file_name: str):
 
     groupings = [group for group in results.keys()] 
     groupings.sort()
@@ -40,12 +49,14 @@ def plot_bar_oocha_results(results: dict, x_names: list, title: str, output_dir:
     multiplier = 0
     for idx, name in enumerate(x_names):
         res = []
+        std_dev = []
+
         for grouping in range(1, 14):
             res.append(results[grouping][idx])
+            std_dev.append(std_deviate[grouping][idx])
 
         offset = width * multiplier
-        print(res)
-        rects = ax.bar(x + offset, res, width, label=name)
+        rects = ax.bar(x + offset, res, yerr=std_dev, width=width, label=name)
         multiplier += 1
 
     ax.set_ylabel('Elapsed Time (ms)')
@@ -78,8 +89,8 @@ def main(results_dir: str, output_dir:str):
     
     for scale_factor in benchmark_runs.keys():
         results_thin, results_wide = calculate_oocha_aggregates(benchmark_runs[scale_factor])
-        plot_bar_oocha_results(results_wide, legend, f"{plot_prefix_name}, SF {scale_factor}, wide", output_dir, f"oocha_wide_{scale_factor}.pdf")
-        plot_bar_oocha_results(results_thin, legend, f"{plot_prefix_name}, SF {scale_factor}, thin", output_dir, f"oocha_thin_{scale_factor}.pdf")
+        plot_bar_oocha_results(results_wide[0], results_wide[1], legend, f"{plot_prefix_name}, SF {scale_factor}, wide", output_dir, f"oocha_wide_{scale_factor}.pdf")
+        plot_bar_oocha_results(results_thin[0], results_thin[1], legend, f"{plot_prefix_name}, SF {scale_factor}, thin", output_dir, f"oocha_thin_{scale_factor}.pdf")
 
 
 

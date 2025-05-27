@@ -7,9 +7,11 @@ import numpy as np
 
 def calculate_tpch_aggregates(benchmark_runs: list[parse.BenchmarkRun]):
     tpch_workload_query_results = defaultdict(lambda: list())
+    tpch_workload_query_deviation = defaultdict(lambda: list())
 
     for query_nr in range(1, 22):
         tpch_query_aggregate = [0] * 3
+        tpch_query_std_deviation = [0] * 3
 
         for run in benchmark_runs:
             index = 0
@@ -18,12 +20,14 @@ def calculate_tpch_aggregates(benchmark_runs: list[parse.BenchmarkRun]):
                 index = 1 if not run.fdp else 2
 
             tpch_query_aggregate[index] = sum(run.results[query_nr]) / len(run.results[query_nr])
+            tpch_query_std_deviation[index] = np.std(run.results[query_nr])
 
         tpch_workload_query_results[query_nr] = tpch_query_aggregate
+        tpch_workload_query_deviation[query_nr] = tpch_query_std_deviation
     
-    return tpch_workload_query_results
+    return tpch_workload_query_results, tpch_workload_query_deviation
 
-def plot_bar_tpch_results(results: dict, x_names: list, title: str, output_dir: str, file_name: str):
+def plot_bar_tpch_results(results: dict, std_deviate: dict, x_names: list, title: str, output_dir: str, file_name: str):
 
     groupings = [group for group in results.keys()] 
     groupings.sort()
@@ -36,11 +40,13 @@ def plot_bar_tpch_results(results: dict, x_names: list, title: str, output_dir: 
     multiplier = 0
     for idx, name in enumerate(x_names):
         res = []
+        std_dev = []
         for query_nr in range(1, 22):
             res.append(results[query_nr][idx])
+            std_dev.append(std_deviate[query_nr][idx])
 
         offset = width * multiplier
-        rects = ax.bar(x + offset, res, width, label=name)
+        rects = ax.bar(x + offset, res, yerr=std_dev, width=width, label=name)
         multiplier += 1
 
     ax.set_ylabel('Elapsed Time (ms)')
@@ -73,8 +79,8 @@ def main(results_dir: str, output_dir:str):
     plot_prefix_name = f"TPC-H Elapsed Time, {memory} GB, {threads} Threads"
     
     for scale_factor in benchmark_runs.keys():
-        tpch_query_aggregates = calculate_tpch_aggregates(benchmark_runs[scale_factor])
-        plot_bar_tpch_results(tpch_query_aggregates, legend, f"{plot_prefix_name}, SF {scale_factor}", output_dir, f"tpch_elapsed_{scale_factor}.pdf")
+        tpch_query_aggregates, std_deviation = calculate_tpch_aggregates(benchmark_runs[scale_factor])
+        plot_bar_tpch_results(tpch_query_aggregates, std_deviation, legend, f"{plot_prefix_name}, SF {scale_factor}", output_dir, f"tpch_elapsed_{scale_factor}.pdf")
 
 
 
