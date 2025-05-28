@@ -52,7 +52,7 @@ def plot_oocha_spill_results(results: dict, x_names: list, title: str, output_di
     plt.savefig(out_path,
         format=format, bbox_inches="tight")
 
-def plot_oocha_spill_bytes_results(results: dict, x_names: list, title: str, output_dir: str, file_name: str):
+def plot_oocha_spill_bytes_results(results: dict, x_names: list, title: str, y_label:str, output_dir: str, file_name: str):
 
     fig, ax = plt.subplots(layout='constrained')
 
@@ -65,7 +65,7 @@ def plot_oocha_spill_bytes_results(results: dict, x_names: list, title: str, out
         ax.plot(y_display, host_data, label=f"{name} (Host Written)")
         ax.plot(y_display, media_data, linestyle='--', label=f"{name} (Media Written)")
 
-    ax.set_ylabel('Data Written to the Device (MB)')
+    ax.set_ylabel(y_label)
     ax.set_xlabel('Duration (minutes)')
     ax.set_title(title)
     ax.legend()
@@ -122,20 +122,27 @@ def main(results_dir: str, output_dir:str):
     
     waf_results = []
     bytes_written_results = []
+    bytes_written_results_raw = []
     mb = 1024 * 1024
+    gb = mb * 1024
     for run in benchmark_waf_runs:
         results = [run.results[minute*10][0][2] for minute in range(0, len(run.results))]
         waf_results.append(results)
 
-        host_written = [run.results[minute*10][0][0]/mb for minute in range(0, len(run.results))]
-        media_written = [run.results[minute*10][0][1]/mb for minute in range(0, len(run.results))]
+        host_written = [(run.results[minute*10][0][0] * 512)/gb for minute in range(0, len(run.results))]
+        media_written = [(run.results[minute*10][0][1] * 512)/gb for minute in range(0, len(run.results))]
+
+        host_written_original = [run.results[minute*10][0][0]/mb for minute in range(0, len(run.results))]
+        media_written_original = [run.results[minute*10][0][1]/mb for minute in range(0, len(run.results))]
 
         bytes_written_results.append((host_written, media_written))
+        bytes_written_results_raw.append((host_written_original, media_written_original))
     
     plot_prefix_name = f"OOCHA-Spill - Write Amplification"
     plot_bytes_written_prefix_name = f"OOCHA-Spill - Bytes Written"
     plot_oocha_spill_results(waf_results[1:], legend[1:], f"{plot_prefix_name}", output_dir, f"oocha_spill_waf.pdf")
-    plot_oocha_spill_bytes_results(bytes_written_results[1:], legend[1:], f"{plot_bytes_written_prefix_name}", output_dir, f"oocha_spill_bytes.pdf")
+    plot_oocha_spill_bytes_results(bytes_written_results[1:], legend[1:], f"{plot_bytes_written_prefix_name}", "Data Written to the Device (GB)", output_dir, f"oocha_spill_bytes.pdf")
+    plot_oocha_spill_bytes_results(bytes_written_results_raw[1:], legend[1:], f"{plot_bytes_written_prefix_name}", "Data Written to the Device (MB)", output_dir, f"oocha_spill_bytes_raw.pdf")
 
 
 if __name__ == '__main__':
