@@ -30,9 +30,14 @@ def parse_filename(filepath: str):
     
     # Extract the benchmark name
     benchmark_name = parts[0]
-    span_type = "duration" if "dur" in parts[1] else "repetition"
+    if (not parts[1].startswith("reps")) and (not parts[1].startswith("dur")):
+        benchmark_name = f"{parts[0]}-{parts[1]}"
+        index = 2
+    else:
+        index = 1
+
+    span_type = "duration" if "dur" in parts[index] else "repetition"
     is_span_type_duration = span_type == "duration"
-    index = 1 if is_span_type_duration else 2
 
     span = int(parts[index][3:]) if is_span_type_duration else int(parts[index][4:])
     index += 1
