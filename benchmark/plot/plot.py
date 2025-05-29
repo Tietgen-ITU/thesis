@@ -21,6 +21,7 @@ def to_coords(seq):
 
 def get_results(result_path_str):
     res = defaultdict(tuple)
+    counter_upscale = 512
 
     bench_files_pattern = r"""^(?!.*result).*txt"""
     matched_files = []
@@ -45,8 +46,8 @@ def get_results(result_path_str):
             for point in measurements[1:]:
                 next = get_single_result(point)
                 
-                diff_host = next[1] - last[1]
-                diff_media = next[2] - last[2]
+                diff_host = (next[1] - last[1]) * counter_upscale
+                diff_media = (next[2] - last[2]) * counter_upscale
 
                 wafs.append(next[0])
                 hosts.append(diff_host)
@@ -65,7 +66,7 @@ def get_results(result_path_str):
             
             res[name] = (wafs, hosts, medias)
     
-    pairs = [("no_fdp", "fdp")]#, ("xnvme_no_fdp", "xnvme_fdp")]
+    pairs = [("no_fdp", "fdp"), ("xnvme_no_fdp", "xnvme_fdp")]
 
     for (nofdp, fdp) in pairs:
         if len(res[nofdp][0]) < len(res[fdp][0]):
@@ -128,7 +129,7 @@ def plot_write(result_path_str):
         ax.set_xlabel("Minutes")
         ax.set_ylabel("GBs written last 10 min")
         ax.xaxis.set_major_locator(MultipleLocator(30))
-        ax.yaxis.set_major_locator(MultipleLocator(0.2))
+        ax.yaxis.set_major_locator(MultipleLocator(200))
         ax.legend(loc='upper left', ncols=1)
 
         plt.savefig(f"{result_path_str}/{test[0]}_write.pdf", format="pdf", bbox_inches="tight")
