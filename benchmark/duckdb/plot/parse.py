@@ -30,16 +30,38 @@ def parse_filename(filepath: str):
     
     # Extract the benchmark name
     benchmark_name = parts[0]
-    span_type = "duration" if "dur" in parts[1] else "repetition"
-    span = int(parts[1][3:]) if span_type == "duration" else int(parts[1][4:])
-    device = parts[2]
-    memory = int(parts[3][3:])
-    backend = parts[4]
-    scale_factor = int(parts[5][2:])
-    threads = int(parts[6][1:])
-    parallel = False if "s" in parts[7] else True
-    parallel_threads = int(parts[7][1:]) if parallel else 1
-    fdp = True if "fdp" == parts[8].split(".")[0] else False
+    if (not parts[1].startswith("reps")) and (not parts[1].startswith("dur")):
+        benchmark_name = f"{parts[0]}-{parts[1]}"
+        index = 2
+    else:
+        index = 1
+
+    span_type = "duration" if "dur" in parts[index] else "repetition"
+    is_span_type_duration = span_type == "duration"
+
+    span = int(parts[index][3:]) if is_span_type_duration else int(parts[index][4:])
+    index += 1
+
+    device = parts[index]
+    index += 1
+
+    memory = int(parts[index][3:])
+    index += 1
+
+    backend = parts[index]
+    index += 1
+
+    scale_factor = int(parts[index][2:])
+    index += 1
+
+    threads = int(parts[index][1:])
+    index += 1
+
+    parallel = False if "s" in parts[index] else True
+    parallel_threads = int(parts[index][1:]) if parallel else 1
+    index += 1
+
+    fdp = True if "fdp" == parts[index].split(".")[0] else False
     
     # Extract the parameters
     benchmark = BenchmarkRun(
@@ -56,7 +78,7 @@ def parse_filename(filepath: str):
         parallel_threads=parallel_threads,
         fdp=fdp
     )
-    
+
     return benchmark
 
 
@@ -95,6 +117,59 @@ def parse_oocha_results(filepath: str) -> BenchmarkRun:
             is_wide = True if wide == "True" else False
 
             grouped_results[(oocha_groupings[group], is_wide)].append(float(elapsed_ms))
+
+    benchmark.results = grouped_results
+    return benchmark
+
+def parse_tpch_results(filepath: str) -> BenchmarkRun:
+    """
+    Parse the TPCH results file to extract the benchmark name and parameters.
+    """
+    benchmark = parse_filename(filepath)
+
+    grouped_results = defaultdict(lambda: list())
+    with open(filepath, newline='\n') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';')
+
+        for query_nr, elapsed_ms in reader:
+            grouped_results[int(query_nr)].append(float(elapsed_ms))
+
+    benchmark.results = grouped_results
+    return benchmark
+
+def parse_oocha_spill_waf_results(filepath: str) -> BenchmarkRun:
+    """
+    Parse the TPCH results file to extract the benchmark name and parameters.
+    """
+    benchmark = parse_filename(filepath)
+
+    grouped_results = defaultdict(lambda: list())
+    with open(filepath, newline='\n') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';')
+
+        minute = 0
+        for _, bytes_written, waf in reader:
+
+            host_written_bytes, media_written_bytes = map(int, bytes_written.split(","))
+            grouped_results[minute].append((host_written_bytes, media_written_bytes, float(waf)))
+            minute += 10
+
+    benchmark.results = grouped_results
+    return benchmark
+
+def parse_oocha_spill_elapsed_results(filepath: str) -> BenchmarkRun:
+    """
+    Parse the TPCH results file to extract the benchmark name and parameters.
+    """
+    benchmark = parse_filename(filepath)
+
+    grouped_results = defaultdict(lambda: list())
+    with open(filepath, newline='\n') as csvfile:
+        reader = csv.reader(csvfile, delimiter=';')
+
+        for row in reader:
+            elapsed_ms = row[0]
+            grouped_results[1].append(float(elapsed_ms))
 
     benchmark.results = grouped_results
     return benchmark
