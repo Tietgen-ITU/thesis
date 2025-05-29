@@ -164,6 +164,12 @@ run_showcase_fdp() {
 
 }
 
+run_tester() {
+    local var OUTDIR="./fio/test_runs/tester" 
+    setup_device_fdp_enabled
+    python3 "$BENCHMARK_DIR/waf.py" "$OUTDIR/tester.txt" $2 $(( $1 / $2 )) & $FIO "$OUTDIR/tester.fio" --output="$OUTDIR/tester_result.txt" --output-format="json"
+}
+
 WORKLOAD="database"
 TEMP_SIZES=()
 INTERVAL=0
@@ -190,5 +196,7 @@ if [[ $WORKLOAD == "database" ]]; then
       run_workload $WORKLOAD $tsize $DURATION $INTERVAL $DEV_TYPE $BACKEND
     done
 elif [[ $WORKLOAD == "showcase" ]]; then
+    run_showcase_fdp $DURATION $INTERVAL
+elif [[ $WORKLOAD == "test" ]]; then
     run_showcase_fdp $DURATION $INTERVAL
 fi
