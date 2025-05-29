@@ -4,5 +4,7 @@ iodepth=32
 bs=4k
 numjobs=1
 ioengine=io_uring_cmd
+
+[write1g]
 size=1g
 rw=write

@@ -198,5 +198,5 @@ if [[ $WORKLOAD == "database" ]]; then
 elif [[ $WORKLOAD == "showcase" ]]; then
     run_showcase_fdp $DURATION $INTERVAL
 elif [[ $WORKLOAD == "test" ]]; then
-    run_showcase_fdp $DURATION $INTERVAL
+    run_tester $DURATION $INTERVAL
 fi
