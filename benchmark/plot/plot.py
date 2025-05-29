@@ -87,7 +87,7 @@ def get_results(result_path_str):
 def plot_waf(result_path_str):
     results = get_results(result_path_str)
 
-    tests = [("no_xnvme", "no_fdp", "fdp")]#, ("xnvme", "xnvme_no_fdp", "xnvme_fdp")]
+    tests = [("no_xnvme", "no_fdp", "fdp"), ("xnvme", "xnvme_no_fdp", "xnvme_fdp")]
 
     for test in tests:
         no_fdp_y = results[test[1]][0]
@@ -110,7 +110,7 @@ def plot_waf(result_path_str):
 def plot_write(result_path_str):
     results = get_results(result_path_str)
 
-    tests = [("no_xnvme", "no_fdp", "fdp")]#, ("xnvme", "xnvme_no_fdp", "xnvme_fdp")]
+    tests = [("no_xnvme", "no_fdp", "fdp"), ("xnvme", "xnvme_no_fdp", "xnvme_fdp")]
 
     for test in tests:
         no_fdp_host_y = list(map(bytes_to_gb, results[test[1]][1]))
