@@ -13,9 +13,15 @@ def get_single_result(measurement):
 
 def bytes_to_gb(value):
     return value / 1000000000
+def bytes_to_gib(value):
+    return value / 1073741824
+
+def to_coords(seq):
+    return map(lambda x: ((x[0]+1)*10, x[1]), enumerate(seq))
 
 def get_results(result_path_str):
     res = defaultdict(tuple)
+    counter_upscale = 512
 
     bench_files_pattern = r"""^(?!.*result).*txt"""
     matched_files = []
@@ -32,19 +38,31 @@ def get_results(result_path_str):
             wafs = []
             hosts = []
             medias = []
+            hosts_gib = []
+            media_gib = []
 
             last = get_single_result(measurements[0]) 
             
             for point in measurements[1:]:
                 next = get_single_result(point)
                 
-                diff_host = next[1] - last[1]
-                diff_media = next[2] - last[2]
+                diff_host = (next[1] - last[1]) * counter_upscale
+                diff_media = (next[2] - last[2]) * counter_upscale
 
                 wafs.append(next[0])
                 hosts.append(diff_host)
                 medias.append(diff_media)
+                hosts_gib.append(bytes_to_gib(diff_host))
+                media_gib.append(bytes_to_gib(diff_media))
                 last = next
+
+            with open(f"{result_path}/{name}_results.csv", mode="w+") as f:
+                f.write(" ".join(map(str, to_coords(wafs))))
+                f.write("\n")
+                f.write(" ".join(map(str, to_coords(hosts_gib))))
+                f.write("\n")
+                f.write(" ".join(map(str, to_coords(media_gib))))
+                f.write("\n")
             
             res[name] = (wafs, hosts, medias)
     
@@ -78,14 +96,14 @@ def plot_waf(result_path_str):
         x_ticks = [x * 10 for x in range(1, len(no_fdp_y)+1)]
 
         fig, ax = plt.subplots()
-        ax.plot(x_ticks, no_fdp_y, label=test[1])
-        ax.plot(x_ticks, fdp_y, label=test[2])
+        ax.plot(x_ticks, no_fdp_y, label=test[1], color="r")
+        ax.plot(x_ticks, fdp_y, label=test[2], color="b")
 
-        ax.set_ylim(bottom=1)
+        ax.set_ylim(bottom=1, top=3)
         ax.set_xlabel("Minutes")
         ax.set_ylabel("Write Amplification Factor (WAF)")
         ax.xaxis.set_major_locator(MultipleLocator(60))
-        ax.yaxis.set_major_locator(MultipleLocator(0.1))
+        ax.yaxis.set_major_locator(MultipleLocator(0.2))
         ax.legend(loc='upper left', ncols=1)
 
         plt.savefig(f"{result_path_str}/{test[0]}.pdf", format="pdf", bbox_inches="tight")
@@ -103,15 +121,16 @@ def plot_write(result_path_str):
         x_ticks = [x * 10 for x in range(1, len(no_fdp_host_y)+1)]
 
         fig, ax = plt.subplots()
-        ax.plot(x_ticks, no_fdp_host_y, label=f"{test[1]}_host", color="r")
-        ax.plot(x_ticks, fdp_host_y, label=f"{test[2]}_host", color="b")
-        ax.plot(x_ticks, no_fdp_media_y, label=f"{test[1]}_media", linestyle="--", color="r")
-        ax.plot(x_ticks, fdp_media_y, label=f"{test[2]}_media", linestyle="--", color="b")
+        ax.plot(x_ticks, no_fdp_host_y, label=f"{test[1]}_host", linestyle="dotted", color="r")
+        ax.plot(x_ticks, fdp_host_y, label=f"{test[2]}_host", linestyle="dotted", color="b")
+        ax.plot(x_ticks, no_fdp_media_y, label=f"{test[1]}_media", linestyle="dashed", color="r")
+        ax.plot(x_ticks, fdp_media_y, label=f"{test[2]}_media", linestyle="dashed", color="b")
 
+        ax.set_ylim(bottom=0, top=2000)
         ax.set_xlabel("Minutes")
         ax.set_ylabel("GBs written last 10 min")
-        ax.xaxis.set_major_locator(MultipleLocator(60))
-        ax.yaxis.set_major_locator(MultipleLocator(0.05))
+        ax.xaxis.set_major_locator(MultipleLocator(30))
+        ax.yaxis.set_major_locator(MultipleLocator(200))
         ax.legend(loc='upper left', ncols=1)
 
         plt.savefig(f"{result_path_str}/{test[0]}_write.pdf", format="pdf", bbox_inches="tight")
