@@ -99,7 +99,7 @@ def plot_waf(result_path_str):
         ax.plot(x_ticks, no_fdp_y, label=test[1], color="r")
         ax.plot(x_ticks, fdp_y, label=test[2], color="b")
 
-        ax.set_ylim(bottom=1)
+        ax.set_ylim(bottom=1, top=3)
         ax.set_xlabel("Minutes")
         ax.set_ylabel("Write Amplification Factor (WAF)")
         ax.xaxis.set_major_locator(MultipleLocator(60))
@@ -126,6 +126,7 @@ def plot_write(result_path_str):
         ax.plot(x_ticks, no_fdp_media_y, label=f"{test[1]}_media", linestyle="dashed", color="r")
         ax.plot(x_ticks, fdp_media_y, label=f"{test[2]}_media", linestyle="dashed", color="b")
 
+        ax.set_ylim(bottom=0, top=2000)
         ax.set_xlabel("Minutes")
         ax.set_ylabel("GBs written last 10 min")
         ax.xaxis.set_major_locator(MultipleLocator(30))
