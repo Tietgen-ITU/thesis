@@ -80,6 +80,29 @@ class ConcurrentDatabase(Database):
     def _setup(self):
         print("Setting up ConcurrentDatabase")
         return
+
+class SPDKDatabase(Database):
+    def __init__(self, db_path: str, threads:int, memory: int, config: ConnectionConfig):
+        super().__init__(db_path, threads, memory)
+        self.number_of_fdp_handles = 7
+        self.device_path = config.device
+        self.use_fdp = config.use_fdp
+        self.backend = config.backend
+
+    def _setup(self):
+        print("Setting up SPDKDatabase")
+        install_extension("../../nvmefs/build/release/extension/nvmefs/nvmefs.duckdb_extension", self)
+        super()._connect()
+        self.add_extension("nvmefs")
+        self.execute(f"""CREATE OR REPLACE PERSISTENT SECRET nvmefs (
+                        TYPE NVMEFS,
+                        nvme_device_path '{self.device_path}',
+                        fdp_plhdls       '{self.number_of_fdp_handles}',
+                        backend          '{self.backend}'
+                    );""")
+        
+        self.execute(f"ATTACH DATABASE '{self.db_path}' AS bench (READ_WRITE);")
+        self.execute("USE bench;")
         
 
 class NvmeDatabase(Database):
@@ -132,6 +155,8 @@ def connect(db_path:str, threads: int, memory: int, config: ConnectionConfig = N
 
     if db_path.startswith("nvmefs://"):
         db = NvmeDatabase(db_path, threads, memory, config)
+    elif db_path.startswith("0000:"):
+        db = SPDKDatabase(db_path, threads, memory, config)
     else:
         db = QuackDatabase(db_path, threads, memory)
 
