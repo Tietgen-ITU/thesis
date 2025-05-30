@@ -1,6 +1,6 @@
 import sys
 import os 
-from runner.oocha.oocha import run_oocha_epoch_benchmark
+from runner.oocha.oocha import run_oocha_epoch_benchmark, setup_oocha_benchmark
 from database.duckdb import Database, connect, ConnectionConfig
 
 def run_bench_for_db(db: Database, iterations: int, scale_factor: int, output_file):
@@ -26,6 +26,7 @@ if __name__ == "__main__":
         setup()
         ucmd_db = connect(db_path, 1, 2000, ConnectionConfig(device="/dev/ng1n1", backend="io_uring_cmd", use_fdp=True))
         with open(f"{output_folder}/ucmd_oocha.csv", mode="w", newline="\n") as file:
+            setup_oocha_benchmark(ucmd_db, "/mnt/duckdb", scale_factor)
             run_bench_for_db(ucmd_db, iterations, scale_factor, file)
     elif db_path.startswith("nvmefs://") and user_space:
         setup()
@@ -34,10 +35,12 @@ if __name__ == "__main__":
         os.system("xnvme-driver reset")
         with open(f"{output_folder}/spdk_oocha.csv", mode="w", newline="\n") as file:
             os.system("HUGHMEM=4096 xnvme-driver")
+            setup_oocha_benchmark(spdk_db, "/mnt/duckdb", scale_factor)
             run_bench_for_db(spdk_db, iterations,scale_factor, file)
             os.system("xnvme-driver reset")
     else:
         setup()
-        normal_cb = connect(db_path, 1, 2000)
+        normal_db = connect(db_path, 1, 2000)
         with open(f"{output_folder}/normal_oocha.csv", mode="w", newline="\n") as file:
-            run_bench_for_db(normal_cb, iterations, scale_factor, file)
+            setup_oocha_benchmark(normal_db, "/mnt/duckdb", scale_factor)
+            run_bench_for_db(normal_db, iterations, scale_factor, file)
