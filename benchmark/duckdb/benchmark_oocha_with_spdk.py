@@ -10,7 +10,7 @@ def run_bench_for_db(db: Database, iterations: int, scale_factor: int, output_fi
 
 def setup():
     os.system("sh ../../nvmefs/scripts/nvme/device_dealloc.sh")
-    os.system("nvme delete-ns /dev/nvme1n1")
+    os.system("nvme delete-ns /dev/nvme1 -n 1")
     os.system("sh ../../nvmefs/scripts/nvme/create_fdp_device.sh")
 
 if __name__ == "__main__":
@@ -36,7 +36,7 @@ if __name__ == "__main__":
         with open(f"{output_folder}/spdk_oocha.csv", mode="w", newline="\n") as file:
             os.system("HUGHMEM=4096 xnvme-driver")
             setup_oocha_benchmark(spdk_db, "/mnt/duckdb", scale_factor)
-            run_bench_for_db(spdk_db, iterations,scale_factor, file)
+            run_bench_for_db(spdk_db, iterations, scale_factor, file)
             os.system("xnvme-driver reset")
     else:
         setup()
