@@ -18,17 +18,18 @@ if __name__ == "__main__":
     iterations = int(sys.argv[2])
     scale_factor = int(sys.argv[3])
     output_folder = sys.argv[4]
+    user_space = True if int(sys.argv[5]) == 1 else 0
     os.makedirs(output_folder, exist_ok=True)
 
 
-    if db_path.startswith("nvmefs://"):
-        ucmd_db = connect(db_path, 1, 2000, ConnectionConfig(device=db_path, backend="io_uring_cmd", use_fdp=True))
+    if db_path.startswith("nvmefs://") and not user_space:
+        ucmd_db = connect(db_path, 1, 2000, ConnectionConfig(device="/dev/ng1n1", backend="io_uring_cmd", use_fdp=True))
         with open(f"{output_folder}/ucmd_oocha.csv", mode="w", newline="\n") as file:
             setup()
             run_bench_for_db(ucmd_db, iterations, file)
-    elif db_path.startswith("0000:"):
+    elif db_path.startswith("nvmefs://") and user_space:
         os.system("HUGHMEM=4096 xnvme-driver")
-        spdk_db = connect(db_path, 1, 2000, ConnectionConfig(device=db_path, backend="spdk_sync", use_fdp=True))
+        spdk_db = connect(db_path, 1, 2000, ConnectionConfig(device="0000:ec:00.0", backend="spdk_sync", use_fdp=True))
         os.system("xnvme-driver reset")
         with open(f"{output_folder}/spdk_oocha.csv", mode="w", newline="\n") as file:
             setup()
