@@ -5,6 +5,7 @@ from database.duckdb import Database, connect, ConnectionConfig
 
 def run_bench_for_db(db: Database, iterations: int, scale_factor: int, output_file):
     for i in range(iterations):
+        print(f"iteration {i}")
         results = run_oocha_epoch_benchmark(db, scale_factor)
         file.write(results)
 

@@ -153,9 +153,9 @@ def connect(db_path:str, threads: int, memory: int, config: ConnectionConfig = N
     # TODO: Use parameters and insert them into the connection string
     db: Database = None
 
-    if db_path.startswith("nvmefs://"):
+    if db_path.startswith("nvmefs://") and config.device.startswith("/dev/"):
         db = NvmeDatabase(db_path, threads, memory, config)
-    elif db_path.startswith("0000:"):
+    elif db_path.startswith("0000:") and config.device.startswith("0000:"):
         db = SPDKDatabase(db_path, threads, memory, config)
     else:
         db = QuackDatabase(db_path, threads, memory)
