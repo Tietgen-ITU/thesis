@@ -23,21 +23,21 @@ if __name__ == "__main__":
 
 
     if db_path.startswith("nvmefs://") and not user_space:
+        setup()
         ucmd_db = connect(db_path, 1, 2000, ConnectionConfig(device="/dev/ng1n1", backend="io_uring_cmd", use_fdp=True))
         with open(f"{output_folder}/ucmd_oocha.csv", mode="w", newline="\n") as file:
-            setup()
             run_bench_for_db(ucmd_db, iterations, file)
     elif db_path.startswith("nvmefs://") and user_space:
+        setup()
         os.system("HUGHMEM=4096 xnvme-driver")
         spdk_db = connect(db_path, 1, 2000, ConnectionConfig(device="0000:ec:00.0", backend="spdk_sync", use_fdp=True))
         os.system("xnvme-driver reset")
         with open(f"{output_folder}/spdk_oocha.csv", mode="w", newline="\n") as file:
-            setup()
             os.system("HUGHMEM=4096 xnvme-driver")
             run_bench_for_db(spdk_db, iterations, file)
             os.system("xnvme-driver reset")
     else:
+        setup()
         normal_cb = connect(db_path, 1, 2000)
         with open(f"{output_folder}/normal_oocha.csv", mode="w", newline="\n") as file:
-            setup()
             run_bench_for_db(normal_cb, iterations, file)
