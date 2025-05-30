@@ -9,9 +9,9 @@ def run_bench_for_db(db: Database, iterations: int, scale_factor: int, output_fi
         file.write(results)
 
 def setup():
-    os.system("../../nvmefs/scripts/nvme/device_dealloc.sh")
+    os.system("sh ../../nvmefs/scripts/nvme/device_dealloc.sh")
     os.system("nvme delete-ns /dev/nvme1n1")
-    os.system("../../nvmefs/scripts/nvme/create_fdp_device.sh")
+    os.system("sh ../../nvmefs/scripts/nvme/create_fdp_device.sh")
 
 if __name__ == "__main__":
     db_path = sys.argv[1]
@@ -26,7 +26,7 @@ if __name__ == "__main__":
         setup()
         ucmd_db = connect(db_path, 1, 2000, ConnectionConfig(device="/dev/ng1n1", backend="io_uring_cmd", use_fdp=True))
         with open(f"{output_folder}/ucmd_oocha.csv", mode="w", newline="\n") as file:
-            run_bench_for_db(ucmd_db, iterations, file)
+            run_bench_for_db(ucmd_db, iterations, scale_factor, file)
     elif db_path.startswith("nvmefs://") and user_space:
         setup()
         os.system("HUGHMEM=4096 xnvme-driver")
@@ -34,10 +34,10 @@ if __name__ == "__main__":
         os.system("xnvme-driver reset")
         with open(f"{output_folder}/spdk_oocha.csv", mode="w", newline="\n") as file:
             os.system("HUGHMEM=4096 xnvme-driver")
-            run_bench_for_db(spdk_db, iterations, file)
+            run_bench_for_db(spdk_db, iterations,scale_factor, file)
             os.system("xnvme-driver reset")
     else:
         setup()
         normal_cb = connect(db_path, 1, 2000)
         with open(f"{output_folder}/normal_oocha.csv", mode="w", newline="\n") as file:
-            run_bench_for_db(normal_cb, iterations, file)
+            run_bench_for_db(normal_cb, iterations, scale_factor, file)
