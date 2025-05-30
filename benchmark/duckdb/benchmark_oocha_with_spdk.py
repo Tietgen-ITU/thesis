@@ -21,19 +21,20 @@ if __name__ == "__main__":
     os.makedirs(output_folder, exist_ok=True)
 
 
-
-    ucmd_db = connect(db_path, 1, 2000, ConnectionConfig(device=db_path, backend="io_uring_cmd", use_fdp=True))
-    spdk_db = connect(db_path, 1, 2000, ConnectionConfig(device=db_path, backend="spdk_sync", use_fdp=True))
-    normal_cb = connect(db_path, 1, 2000)
-
-    with open(f"{output_folder}/spdk_oocha.csv", mode="w", newline="\n") as file:
-        setup()
-        os.system("HUGHMEM=4096 xnvme-driver")
-        run_bench_for_db(spdk_db, iterations, file)
-        os.system("xnvme-driver reset")
-    with open(f"{output_folder}/ucmd_oocha.csv", mode="w", newline="\n") as file:
-        setup()
-        run_bench_for_db(ucmd_db, iterations, file)
-    with open(f"{output_folder}/normal_oocha.csv", mode="w", newline="\n") as file:
-        setup()
-        run_bench_for_db(normal_cb, iterations, file)
+    if db_path.startswith("nvmefs://"):
+        ucmd_db = connect(db_path, 1, 2000, ConnectionConfig(device=db_path, backend="io_uring_cmd", use_fdp=True))
+        with open(f"{output_folder}/ucmd_oocha.csv", mode="w", newline="\n") as file:
+            setup()
+            run_bench_for_db(ucmd_db, iterations, file)
+    elif db_path.startswith("0000:"):
+        spdk_db = connect(db_path, 1, 2000, ConnectionConfig(device=db_path, backend="spdk_sync", use_fdp=True))
+        with open(f"{output_folder}/spdk_oocha.csv", mode="w", newline="\n") as file:
+            setup()
+            os.system("HUGHMEM=4096 xnvme-driver")
+            run_bench_for_db(spdk_db, iterations, file)
+            os.system("xnvme-driver reset")
+    else:
+        normal_cb = connect(db_path, 1, 2000)
+        with open(f"{output_folder}/normal_oocha.csv", mode="w", newline="\n") as file:
+            setup()
+            run_bench_for_db(normal_cb, iterations, file)
