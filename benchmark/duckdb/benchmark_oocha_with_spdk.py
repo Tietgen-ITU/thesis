@@ -27,7 +27,9 @@ if __name__ == "__main__":
             setup()
             run_bench_for_db(ucmd_db, iterations, file)
     elif db_path.startswith("0000:"):
+        os.system("HUGHMEM=4096 xnvme-driver")
         spdk_db = connect(db_path, 1, 2000, ConnectionConfig(device=db_path, backend="spdk_sync", use_fdp=True))
+        os.system("xnvme-driver reset")
         with open(f"{output_folder}/spdk_oocha.csv", mode="w", newline="\n") as file:
             setup()
             os.system("HUGHMEM=4096 xnvme-driver")
