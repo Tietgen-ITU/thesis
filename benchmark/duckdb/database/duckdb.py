@@ -111,11 +111,11 @@ class NvmeDatabase(Database):
     """
 
     def __init__(self, db_path: str, threads: int, memory: int, config: ConnectionConfig):
+        super().__init__(db_path, threads, memory)
         self.device_path = config.device
         self.backend = config.backend
         self.use_fdp = config.use_fdp
         self.number_of_fdp_handles = 7
-        super().__init__(db_path, threads, memory)
     
     def _setup(self):
         install_extension("../../nvmefs/build/release/extension/nvmefs/nvmefs.duckdb_extension", self)
@@ -152,10 +152,10 @@ def run_query(query: str, db: Database = None):
 def connect(db_path:str, threads: int, memory: int, config: ConnectionConfig = None) -> Database:
     # TODO: Use parameters and insert them into the connection string
     db: Database = None
-
+    print(config)
     if db_path.startswith("nvmefs://") and config.device.startswith("/dev/"):
         db = NvmeDatabase(db_path, threads, memory, config)
-    elif db_path.startswith("0000:") and config.device.startswith("0000:"):
+    elif db_path.startswith("nvmefs://") and config.device.startswith("0000:"):
         db = SPDKDatabase(db_path, threads, memory, config)
     else:
         db = QuackDatabase(db_path, threads, memory)
