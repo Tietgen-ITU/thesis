@@ -10,7 +10,8 @@ l_suppkey-l_partkey-l_returnflag-l_linestatus;True;168986.94966174662
 l_suppkey-l_partkey-l_shipinstruct-l_shipmode;True;267161.1424256116
 l_suppkey-l_partkey-l_shipinstruct;True;274058.7615193799
 l_suppkey-l_partkey-l_shipmode;True;212296.42993677408
-l_suppkey-l_partkey;True;199824.4058052078l_orderkey-l_partkey;True;219104.9366798252
+l_suppkey-l_partkey;True;199824.4058052078
+l_orderkey-l_partkey;True;219104.9366798252
 l_orderkey-l_returnflag-l_linestatus;True;76106.0637878254
 l_orderkey-l_suppkey;True;220113.79754450172
 l_orderkey;True;65898.58398400247
@@ -22,7 +23,8 @@ l_suppkey-l_partkey-l_returnflag-l_linestatus;True;173529.87384516746
 l_suppkey-l_partkey-l_shipinstruct-l_shipmode;True;270906.80049546063
 l_suppkey-l_partkey-l_shipinstruct;True;275117.8967319429
 l_suppkey-l_partkey-l_shipmode;True;209418.99111121893
-l_suppkey-l_partkey;True;199055.21313566715l_orderkey-l_partkey;True;218707.30491448194
+l_suppkey-l_partkey;True;199055.21313566715
+l_orderkey-l_partkey;True;218707.30491448194
 l_orderkey-l_returnflag-l_linestatus;True;76125.47335401177
 l_orderkey-l_suppkey;True;218379.70582209527
 l_orderkey;True;65847.49605879188
