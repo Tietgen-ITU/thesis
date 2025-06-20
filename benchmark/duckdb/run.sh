@@ -9,6 +9,7 @@ MOUNT="/mnt/itu/duckdb"
 
 M_SIZE_PRECONDITION=826334568 # ~3,38TB, 90% of device
 L_SIZE_PRECONDITION=762064106 # ~3,12TB, 83% of device
+XL_SIZE_PRECONDITION=524288000 # ~2,00TB, 55% of device
 
 setup_precondition_ns_fdp() {
 
@@ -45,6 +46,9 @@ remove_precondition_device() {
     nvme delete-ns $DEVICE_PATH --namespace-id=1
 }
 
+source /home/pinar/.bashrc
+source ./init.sh
+
 
 ###################################
 # Run all out-of-core benchmarks with focus on the individual elasped times
@@ -54,25 +58,25 @@ TPCH_SIZES=(1 10 100 1000)
 # nvme io_uring_cmd with fdp
 for sf in "${TPCH_SIZES[@]}"
 do
-    setup_precondition_ns_fdp $DEVICE $M_SIZE_PRECONDITION
+    setup_precondition_ns_fdp $DEVICE $XL_SIZE_PRECONDITION
     python3 benchmark.py -r $REPETITIONS --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf $sf -t 16 --fdp tpch
-    remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+    remove_precondition_device $DEVICE $XL_SIZE_PRECONDITION
 done
 
 # nvme io_uring_cmd without fdp
 for sf in "${TPCH_SIZES[@]}"
 do
-    setup_precondition_ns $DEVICE $M_SIZE_PRECONDITION
+    setup_precondition_ns $DEVICE $XL_SIZE_PRECONDITION
     python3 benchmark.py -r $REPETITIONS --input_directory $INPUT_DIR --device_path $DEVICE --generic_device -b "io_uring_cmd" -m 20000 --sf $sf -t 16 tpch
-    remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+    remove_precondition_device $DEVICE $XL_SIZE_PRECONDITION
 done
 
 # Base line for the tpch elapsed benchmark
 for sf in "${TPCH_SIZES[@]}"
 do
-    setup_precondition_ns $DEVICE $M_SIZE_PRECONDITION
+    setup_precondition_ns $DEVICE $XL_SIZE_PRECONDITION
     python3 benchmark.py -r $REPETITIONS --mount_path $MOUNT --device_path $DEVICE --input_directory $INPUT_DIR -m 20000 --sf $sf -t 16 tpch
-    remove_precondition_device $DEVICE $M_SIZE_PRECONDITION
+    remove_precondition_device $DEVICE $XL_SIZE_PRECONDITION
 done
 
 ###################################

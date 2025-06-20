@@ -13,10 +13,10 @@ sequenceDiagram
     TemporaryFileManager ->> TemporaryFileManager: CompressBuffer
     critical [TemporaryFileManager Lock]
         TemporaryFileManager ->> TemporaryFileManager: GetTemporaryFileHandle
+        TemporaryFileManager ->> TemporaryFileHandle: TryGetBlockIndex
         alt filehandle with free block not found
             TemporaryFileManager ->> TemporaryFileManager: CreateNextFileIdentifier
-            create participant TemporaryFileHandle
-            TemporaryFileManager ->> TemporaryFileHandle: CreateFile(identifier)
+            TemporaryFileManager ->> TemporaryFileManager: CreateFile(identifier)
         end
     end
 
