@@ -4,7 +4,8 @@ This project is the Master's thesis of Emil (@emiloh) and Andreas (@arnenator) a
 
 ## Acknowledgements
 
-This project is accomplished with collaboration from Samsung Memory Research Center and supervised by Pinar Tözün, Marcel Weisgut, and Vivek Shah.
+This project is accomplished with collaboration from Samsung Memory Research Center (SMRC) and supervised by Pinar Tözün, Marcel Weisgut, and Vivek Shah. [SMRC](https://smrc.biz.samsung.com/)  is an open collaborative space for members
+of the Samsung Memory Division, partners, and customers to find good software & hardware solutions related to SSDs together.
 
 ## Building nvmefs 🛠️
 
