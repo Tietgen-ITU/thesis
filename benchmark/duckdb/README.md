@@ -10,6 +10,12 @@ This directory contains files to run benchmarks for the duckdb instance referenc
 
 When running the benchmark, the script will create a python environment and install the necessary dependencies, including the DuckDB python client build from the contents of the Git submodule nvmefs.
 
+Besides the software dependencies, the script also need to have the following environment variables declared in order to get the number of bytes written from the NVMe device:
+
+- **LOGIDWAF**: Log ID to get bytes written from
+- **SENT_OFFSET**: Offset of where to read the amount of bytes requested to be written
+- **WRITTEN_OFFSET**: Offset of where to read the amount of bytes that the device actually wrote
+
 ## How to run the benchmark
 
 > [!IMPORTANT]
