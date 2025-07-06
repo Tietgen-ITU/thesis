@@ -6,6 +6,7 @@ This directory contains files to run benchmarks for the duckdb instance referenc
 
 - **[nvme-cli](https://github.com/linux-nvme/nvme-cli)**
 - **Python**: v3.13.2
+- **nvmefs**: needs to be built from the git submodule
 
 When running the benchmark, the script will create a python environment and install the necessary dependencies, including the DuckDB python client build from the contents of the Git submodule nvmefs.
 
