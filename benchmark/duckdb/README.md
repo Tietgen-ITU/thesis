@@ -1,6 +1,20 @@
 # DuckDB Benchmarks
 
-This directory contains files to run benchmarks for the duckdb instance referenced by the nvmefs git submodule. The goal of this benchmark is measure the Write Amplification Factor(WAF) of an NVMe device when using an analytical database system such as DuckDB. In particular we want to see if Flexible Data Placement has a positive effect on WAF. 
+This directory contains files to run benchmarks for the duckdb instance referenced by the nvmefs git submodule. The goal of this benchmark is measure the Write Amplification Factor(WAF) of an NVMe device when using an analytical database system such as DuckDB. In particular we want to see if Flexible Data Placement have an impact on WAF. 
+
+## Prerequisites
+
+- **[nvme-cli](https://github.com/linux-nvme/nvme-cli)**
+- **Python**: v3.13.2
+- **nvmefs**: needs to be built from the git submodule
+
+When running the benchmark, the script will create a python environment and install the necessary dependencies, including the DuckDB python client build from the contents of the Git submodule nvmefs.
+
+Besides the software dependencies, the script also need to have the following environment variables declared in order to get the number of bytes written from the NVMe device:
+
+- **LOGIDWAF**: Log ID to get bytes written from
+- **SENT_OFFSET**: Offset of where to read the amount of bytes requested to be written
+- **WRITTEN_OFFSET**: Offset of where to read the amount of bytes that the device actually wrote
 
 ## How to run the benchmark
 
@@ -22,6 +36,9 @@ chmod +x ./run.sh
 sh ./init.sh
 source .venv/bin/activate.fish
 ```
+
+> [!NOTE]
+> If you encounter an error indicating the device cannot be opened, try running the DuckDB executable with elevated privileges (e.g., using `sudo`).
 
 Running the benchmarks is as simple as:
 ```sh
