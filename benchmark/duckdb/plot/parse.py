@@ -204,18 +204,27 @@ def parse_filename(filepath: str):
     parts = filename.split("-")
     
     # Extract the benchmark name
-    benchmark_name = parts[0]
-    span_type = "duration" if "dur" in parts[1] else "repetition"
-    span = int(parts[1][3:]) if span_type == "duration" else int(parts[1][4:])
-    device = parts[2]
-    memory = int(parts[3][3:])
-    backend = parts[4]
-    scale_factor = int(parts[5][2:])
-    threads = int(parts[6][1:])
-    parallel = False if "s" in parts[7] else True
-    parallel_threads = int(parts[7][1:]) if parallel else 1
-    fdp = True if "fdp" == parts[8].split(".")[0] else False
-    
+    has_dash_in_benchmark_name = not (parts[1].startswith("reps") or parts[1].startswith("dur"))
+    benchmark_name = f"{parts[0]}-{parts[1]}" if has_dash_in_benchmark_name else parts[0]
+    index = 2 if has_dash_in_benchmark_name else 1
+    span_type = "duration" if "dur" in parts[index] else "repetition"
+    span = int(parts[index][3:]) if span_type == "duration" else int(parts[index][4:])
+    index += 1
+    device = parts[index]
+    index += 1
+    memory = int(parts[index][3:])
+    index += 1
+    backend = parts[index]
+    index += 1
+    scale_factor = int(parts[index][2:])
+    index += 1
+    threads = int(parts[index][1:])
+    index += 1
+    parallel = False if "s" in parts[index] else True
+    parallel_threads = int(parts[index][1:]) if parallel else 1
+    index += 1
+    fdp = True if "fdp" == parts[index].split(".")[0] else False
+
     # Extract the parameters
     benchmark = BenchmarkRun(
         benchmark=benchmark_name,
@@ -231,7 +240,7 @@ def parse_filename(filepath: str):
         parallel_threads=parallel_threads,
         fdp=fdp
     )
-    
+
     return benchmark
 
 
