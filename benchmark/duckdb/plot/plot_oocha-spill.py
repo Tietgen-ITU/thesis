@@ -140,9 +140,10 @@ def main(results_dir: str, output_dir:str):
     
     plot_prefix_name = f"OOCHA-Spill - Write Amplification"
     plot_bytes_written_prefix_name = f"OOCHA-Spill - Bytes Written"
-    plot_oocha_spill_results(waf_results[1:], legend[1:], f"{plot_prefix_name}", output_dir, f"oocha_spill_waf.pdf")
-    plot_oocha_spill_bytes_results(bytes_written_results[1:], legend[1:], f"{plot_bytes_written_prefix_name}", "Data Written to the Device (GB)", output_dir, f"oocha_spill_bytes.pdf")
-    plot_oocha_spill_bytes_results(bytes_written_results_raw[1:], legend[1:], f"{plot_bytes_written_prefix_name}", "Data Written to the Device (MB)", output_dir, f"oocha_spill_bytes_raw.pdf")
+    
+    plot_oocha_spill_results(waf_results, legend[1:], f"{plot_prefix_name}", output_dir, f"oocha_spill_waf.pdf")
+    plot_oocha_spill_bytes_results(bytes_written_results, legend[1:], f"{plot_bytes_written_prefix_name}", "Data Written to the Device (GB)", output_dir, f"oocha_spill_bytes.pdf")
+    plot_oocha_spill_bytes_results(bytes_written_results_raw, legend[1:], f"{plot_bytes_written_prefix_name}", "Data Written to the Device (MB)", output_dir, f"oocha_spill_bytes_raw.pdf")
 
 
 if __name__ == '__main__':
